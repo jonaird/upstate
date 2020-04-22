@@ -1,3 +1,5 @@
+
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
@@ -61,7 +63,7 @@ abstract class StateElement {
   }
 
   String toJson(){
-    return jsonEncode(this.toPrimitive());
+    return jsonEncode(toPrimitive());
   }
 
   
@@ -114,7 +116,7 @@ StateElement toStateElement(obj, StateElement parent) {
     return StateMap(obj, parent);
   } else if (obj is List) {
     return StateList(obj, parent);
-  } else if ((obj is double)||(obj is String)||(obj is bool||obj==null)) {
+  } else if (obj is double||obj is int || obj is String||obj is bool||obj==null) {
     return StateValue(obj, parent);
   } 
   else {

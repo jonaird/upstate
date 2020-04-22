@@ -5,15 +5,16 @@ import 'dart:async';
 import 'src/base.dart';
 import 'src/maps.dart';
 
-export 'src/base.dart' hide toStateElement, ChangeRecord;
+export 'src/base.dart' hide toStateElement;
 export 'src/maps.dart' hide toStateElementMap;
 export 'src/state_list.dart' hide toStateElementList;
+export 'src/state_value.dart';
 
 class StateWidget extends InheritedWidget {
   final Widget child;
   final StateObject _state;
 
-  StateWidget({ @required state, @required this.child, Key key})
+  StateWidget({@required state, @required this.child, Key key})
       : _state = state,
         super(key: key);
 
@@ -24,19 +25,20 @@ class StateWidget extends InheritedWidget {
   @override
   bool updateShouldNotify(StateWidget oldWidget) {
     bool dif = oldWidget.state != this._state;
-    if(dif){
+    if (dif) {
       oldWidget.state.removeFromStateTree();
     }
     return dif;
   }
 }
 
-mixin StateWidgetConsumer<T extends StatefulWidget> on State<T> {
+mixin StateConsumerMixin<T extends StatefulWidget> on State<T> {
   List<StreamSubscription> _subscriptions = [];
 
   subscribeToPaths(List<StatePath> paths, StateObject state) {
     paths.forEach((path) {
-      _subscriptions.add(state.subscribeTo(path, _setStateSubscriptionCallback));
+      _subscriptions
+          .add(state.subscribeTo(path, _setStateSubscriptionCallback));
     });
   }
 
@@ -60,21 +62,25 @@ class StateBuilder<T extends StateWidget> extends StatefulWidget {
       {@required
           this.paths,
       @required
-         Widget Function(BuildContext context, StateObject state, Widget child) builder,
-      this.child}):_builder=builder;
+          Widget Function(BuildContext context, StateObject state, Widget child)
+              builder,
+      this.child,
+      Key key})
+      : _builder = builder,
+        super(key: key);
 
   @override
   _StateBuilderState createState() => _StateBuilderState<T>();
 }
 
 class _StateBuilderState<T extends StateWidget> extends State<StateBuilder>
-    with StateWidgetConsumer {
+    with StateConsumerMixin {
   StateObject _state;
 
   @override
   void didChangeDependencies() {
     cancelSubscriptions();
-    _state = context.dependOnInheritedWidgetOfExactType<T>().state;
+    _state = StateObject.of(context);
     subscribeToPaths(widget.paths, _state);
     super.didChangeDependencies();
   }

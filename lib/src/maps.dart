@@ -13,7 +13,10 @@ class StateMap extends StateElement with MapMixin<String, StateElement> {
   bool notifyAncestors;
 
   StateMap(Map<String, dynamic> map, [this.parent])
-      : notifyAncestors = parent.notifyAncestors {
+      {
+        if(this.parent!=null){
+          notifyAncestors=parent.notifyAncestors;
+        }
     _map = toStateElementMap(map, this);
   }
 
@@ -55,13 +58,13 @@ class StateObject extends StateMap {
   }
 
 
-  static of<T extends StateWidget>(BuildContext context) {
-    var stateWidget = context.findAncestorWidgetOfExactType<T>();
-    return stateWidget.state;
+  static of<T extends StateWidget>(BuildContext context) =>context.dependOnInheritedWidgetOfExactType<T>().state;
+  
+  StateValue call(StatePath path){
+    return getElementAtPath(path);
   }
 
-
-  StreamSubscription subscribeTo(StatePath path, VoidCallback callback) {
+  StateElement getElementAtPath(StatePath path){
     StateElement element = this;
     StatePath newPath = StatePath.from(path);
 
@@ -74,7 +77,12 @@ class StateObject extends StateMap {
         throw ('Invalid state path for state: $this');
       }
     }
+    return element;
+  }
 
+
+  StreamSubscription subscribeTo(StatePath path, VoidCallback callback) {
+    StateElement element = getElementAtPath(path);
     return element.changes.listen((event) {
       callback();
     });
@@ -84,8 +92,10 @@ class StateObject extends StateMap {
 Map<String, StateElement> toStateElementMap(
     Map<String, dynamic> map, StateElement parent) {
   var newMap = Map.from(map);
+
+  
   newMap.updateAll((key, value) {
     return toStateElement(value, parent);
   });
-  return newMap;
+  return newMap.cast<String,StateElement>();
 }

@@ -18,7 +18,7 @@ class StateValue<T> extends StateElement {
   
   dynamic toPrimitive(){
     if(_value is double && _isInt){
-      return this.asInt;
+      return asInt;
     } else{
       return _value;
     }
@@ -50,7 +50,7 @@ class StateValue<T> extends StateElement {
   int get asInt {
     if (removedFromStateTree) {
       throw ('A value you tried to change has been removed from the state tree');
-    } else if (!_value is double) {
+    } else if (!(_value is double)) {
       throw ('asInt can only be used for state values that hold a number');
     }
     _isInt ??= true;
@@ -60,7 +60,7 @@ class StateValue<T> extends StateElement {
   set asInt(int value) {
     if (removedFromStateTree) {
       throw ('A value you tried to change has been removed from the state tree');
-    } else if (!_value is double) {
+    } else if (!(_value is double)) {
       throw ('asInt can only be used for state values that hold a number');
     }
     _isInt ??= true;
@@ -71,7 +71,7 @@ class StateValue<T> extends StateElement {
   double get asDouble {
     if (removedFromStateTree) {
       throw ('A value you tried to change has been removed from the state tree');
-    } else if (!_value is double) {
+    } else if (!(_value is double)) {
       throw ('asDouble can only be used for state values that hold a number');
     }
     return _value;
@@ -80,7 +80,7 @@ class StateValue<T> extends StateElement {
   set asDouble(double value) {
     if (removedFromStateTree) {
       throw ('A value you tried to change has been removed from the state tree');
-    } else if (!_value is double) {
+    } else if (!(_value is double)) {
       throw ('asDouble can only be used for state values that hold a number');
     } else if (_isInt) {
       throw ("Once a StateNumber is set or retrieved as an int, you cannot set it as a double");
