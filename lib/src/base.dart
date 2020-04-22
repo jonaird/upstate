@@ -1,26 +1,25 @@
 import 'dart:async';
 import 'dart:collection';
-import 'package:flutter/foundation.dart';
 
-import 'map.dart';
-import 'list.dart';
-import 'primitives.dart';
+import 'maps.dart';
+import 'state_list.dart';
+import 'state_value.dart';
 
 abstract class StateElement {
   StateElement parent;
-  bool _removedFromTree = false;
-  bool _pathSet=false;
-  bool notifyRecursively;
+  bool _removedFromStateTree = false;
+  bool notifyAncestors;
 
   final StreamController<ChangeRecord> _changes = StreamController.broadcast();
 
+
   //notifies subscribers of a change and all ancestor state elements
   void notifyChange() {
-    if (_removedFromTree) {
+    if (_removedFromStateTree) {
       throw ('State element has been removed from the state tree and can\'t be modified');
     } else {
       _changes.add(ChangeRecord.changed);
-      if (notifyRecursively && !isRoot) {
+      if (notifyAncestors && !isRoot) {
         parent.notifyChange();
       }
     }
@@ -31,8 +30,8 @@ abstract class StateElement {
   }
 
   void removeFromTree() {
-    _removedFromTree = true;
-    _changes.add(ChangeRecord.removedFromTree);
+    _removedFromStateTree = true;
+    _changes.add(ChangeRecord.removedFromStateTree);
     _changes.close();
 
     //recursively removes children from tree;
@@ -49,23 +48,28 @@ abstract class StateElement {
     }
   }
 
-  bool get removedFromTree => _removedFromTree;
+  bool get removedFromStateTree => _removedFromStateTree;
 
   Stream<ChangeRecord> get changes {
     return _changes.stream;
   }
 }
 
-class StatePath with ListMixin {
+class StatePath extends ListBase {
   List _path;
 
-  StatePath(List path) : _path = path;
+  StatePath(List path) {
+    path.forEach((key) {
+      if(!(key is int || key is String)){
+        throw('StatePaths must only contain Strings or ints');
+      }
+     });
+     _path=path;
+  }
 
   factory StatePath.from(StatePath path) {
     return StatePath(path.toList());
   }
-
-  static root() => StatePath([]);
 
   int get length => _path.length;
 
@@ -85,20 +89,17 @@ class StatePath with ListMixin {
   }
 }
 
-enum ChangeRecord { changed, removedFromTree }
+enum ChangeRecord { changed, removedFromStateTree }
 
 StateElement toStateElement(obj, StateElement parent) {
   if (obj is Map) {
     return StateMap(obj, parent);
   } else if (obj is List) {
     return StateList(obj, parent);
-  } else if (obj is int) {
-    return StateNumber(obj.toDouble(), parent);
-  } else if (obj is double) {
-    return StateNumber(obj, parent);
-  } else if (obj is bool) {
-    return StateBool(obj, parent);
-  } else {
+  } else if ((obj is double)||(obj is String)||(obj is bool)) {
+    return StateValue(obj, parent);
+  } 
+  else {
     throw ("All elements in the state tree must be of type double, int, bool, String, Map, or List. Instead element"
         "$obj was of type ${obj.runtimeType}");
   }
