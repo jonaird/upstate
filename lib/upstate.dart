@@ -5,11 +5,15 @@ import 'dart:async';
 import 'src/base.dart';
 import 'src/maps.dart';
 
+export 'src/base.dart' hide toStateElement, ChangeRecord;
+export 'src/maps.dart' hide toStateElementMap;
+export 'src/state_list.dart' hide toStateElementList;
+
 class StateWidget extends InheritedWidget {
   final Widget child;
   final StateObject _state;
 
-  StateWidget({@required this.child, @required state, Key key})
+  StateWidget({ @required state, @required this.child, Key key})
       : _state = state,
         super(key: key);
 
@@ -19,8 +23,11 @@ class StateWidget extends InheritedWidget {
 
   @override
   bool updateShouldNotify(StateWidget oldWidget) {
-    oldWidget.state.removeFromStateTree();
-    return oldWidget.state != this._state;
+    bool dif = oldWidget.state != this._state;
+    if(dif){
+      oldWidget.state.removeFromStateTree();
+    }
+    return dif;
   }
 }
 
@@ -29,11 +36,11 @@ mixin StateWidgetConsumer<T extends StatefulWidget> on State<T> {
 
   subscribeToPaths(List<StatePath> paths, StateObject state) {
     paths.forEach((path) {
-      _subscriptions.add(state.subscribeTo(path, setStateSubscriptionCallback));
+      _subscriptions.add(state.subscribeTo(path, _setStateSubscriptionCallback));
     });
   }
 
-  setStateSubscriptionCallback() {
+  _setStateSubscriptionCallback() {
     setState(() {});
   }
 
@@ -46,15 +53,15 @@ mixin StateWidgetConsumer<T extends StatefulWidget> on State<T> {
 
 class StateBuilder<T extends StateWidget> extends StatefulWidget {
   final List<StatePath> paths;
-  final Function builder;
+  final Function _builder;
   final Widget child;
 
   StateBuilder(
       {@required
           this.paths,
       @required
-          this.builder(BuildContext context, StateObject state, Widget child),
-      this.child});
+         Widget Function(BuildContext context, StateObject state, Widget child) builder,
+      this.child}):_builder=builder;
 
   @override
   _StateBuilderState createState() => _StateBuilderState<T>();
@@ -80,6 +87,6 @@ class _StateBuilderState<T extends StateWidget> extends State<StateBuilder>
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(context, _state, widget.child);
+    return widget._builder(context, _state, widget.child);
   }
 }

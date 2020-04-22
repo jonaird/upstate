@@ -9,15 +9,20 @@ class StateValue<T> extends StateElement {
   StateValue(T value, this.parent):notifyAncestors=parent.notifyAncestors {
     if (value is int) {
       _value = value.toDouble();
-    } else if ((value is String) || (value is bool) || (value is double)) {
+    } else if ((value is String) || (value is bool) || (value is double) || value==null) {
       _value = value;
     } else {
-      throw ('State values must be of type int, double, String, or bool');
+      throw ('State values must be of type int, double, String, bool, or null');
     }
   }
   
   dynamic toPrimitive(){
-    return _value;
+    if(_value is double && _isInt){
+      return this.asInt;
+    } else{
+      return _value;
+    }
+    
   }
 
 

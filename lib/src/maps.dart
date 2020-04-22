@@ -43,6 +43,7 @@ class StateMap extends StateElement with MapMixin<String, StateElement> {
 
 class StateObject extends StateMap {
   bool notifyAncestors;
+
   StateObject(Map<String, dynamic> map,
       {bool elementsShouldNotifyAncestors = true})
       : notifyAncestors = elementsShouldNotifyAncestors,
@@ -53,8 +54,6 @@ class StateObject extends StateMap {
     return StateObject(map,elementsShouldNotifyAncestors: elementsShouldNotifyAncestors);
   }
 
-  
-
 
   static of<T extends StateWidget>(BuildContext context) {
     var stateWidget = context.findAncestorWidgetOfExactType<T>();
@@ -62,17 +61,13 @@ class StateObject extends StateMap {
   }
 
 
-  StreamSubscription subscribeTo(StatePath path, Function callback) {
+  StreamSubscription subscribeTo(StatePath path, VoidCallback callback) {
     StateElement element = this;
     StatePath newPath = StatePath.from(path);
 
     while (newPath.isNotEmpty) {
-      if (element is StateMap && newPath.first is String) {
+      if ((element is StateMap && newPath.first is String)||(element is StateList && newPath.first is int)) {
         var elem = element as StateMap;
-        element = elem[newPath.first];
-        newPath.removeAt(0);
-      } else if (element is StateList && newPath.first is int) {
-        var elem = element as StateList;
         element = elem[newPath.first];
         newPath.removeAt(0);
       } else {
