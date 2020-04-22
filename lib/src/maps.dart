@@ -1,10 +1,10 @@
 import 'dart:collection';
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'base.dart';
 import '../upstate.dart';
-import 'package:flutter/widgets.dart';
 import 'state_list.dart';
-
 
 // StateMap is an unmodifiable map<String, StateElement>
 class StateMap extends StateElement with MapMixin<String, StateElement> {
@@ -17,7 +17,6 @@ class StateMap extends StateElement with MapMixin<String, StateElement> {
     _map = toStateElementMap(map, this);
   }
 
- 
   Iterable<String> get keys => _map.keys;
 
   StateElement operator [](key) => _map[key];
@@ -33,37 +32,57 @@ class StateMap extends StateElement with MapMixin<String, StateElement> {
   remove(key) {
     throw ('StateMaps are immutable.');
   }
+
+  Map toPrimitive(){
+    var newMap = Map.from(_map);
+    newMap.updateAll((key, value) => value.toPrimitives());
+    return newMap;
+  }
+
 }
 
 class StateObject extends StateMap {
   bool notifyAncestors;
-  StateObject(Map<String, dynamic> map, {this.notifyAncestors = true})
-      : super(map);
+  StateObject(Map<String, dynamic> map,
+      {bool elementsShouldNotifyAncestors = true})
+      : notifyAncestors = elementsShouldNotifyAncestors,
+        super(map);
+
+  factory  StateObject.fromJson(String json, {bool elementsShouldNotifyAncestors = true}){
+    var map = jsonDecode(json);
+    return StateObject(map,elementsShouldNotifyAncestors: elementsShouldNotifyAncestors);
+  }
+
+  
+
 
   static of<T extends StateWidget>(BuildContext context) {
     var stateWidget = context.findAncestorWidgetOfExactType<T>();
     return stateWidget.state;
-    
   }
-  
+
+
   StreamSubscription subscribeTo(StatePath path, Function callback) {
-    StateElement element=this;
+    StateElement element = this;
     StatePath newPath = StatePath.from(path);
 
-    while(newPath.isNotEmpty){
-      if(element is StateMap && newPath.first is String){
+    while (newPath.isNotEmpty) {
+      if (element is StateMap && newPath.first is String) {
         var elem = element as StateMap;
         element = elem[newPath.first];
-      } else if(element is StateList && newPath.first is int){
+        newPath.removeAt(0);
+      } else if (element is StateList && newPath.first is int) {
         var elem = element as StateList;
         element = elem[newPath.first];
-      } else{
-        throw('Invalid state path for state: $this');
+        newPath.removeAt(0);
+      } else {
+        throw ('Invalid state path for state: $this');
       }
     }
 
-    return element.changes.listen((event) {callback();});
-    
+    return element.changes.listen((event) {
+      callback();
+    });
   }
 }
 

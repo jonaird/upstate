@@ -16,13 +16,16 @@ class StateValue<T> extends StateElement {
     }
   }
   
+  dynamic toPrimitive(){
+    return _value;
+  }
 
 
   T get value {
     if (removedFromStateTree) {
       throw ('A value you tried to access has been removed from the state tree');
     } else if (_value is double) {
-      throw ('to access a number from a state value use asInt or as Double');
+      throw ('to access a number from a state value use asInt or asDouble');
     }
     return _value;
   }

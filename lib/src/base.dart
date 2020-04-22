@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 
 import 'maps.dart';
 import 'state_list.dart';
@@ -12,6 +13,11 @@ abstract class StateElement {
 
   final StreamController<ChangeRecord> _changes = StreamController.broadcast();
 
+  dynamic toPrimitive();
+
+  String toJson(){
+    return jsonEncode(this.toPrimitive());
+  }
 
   //notifies subscribers of a change and all ancestor state elements
   void notifyChange() {
@@ -29,7 +35,7 @@ abstract class StateElement {
     return this is StateObject;
   }
 
-  void removeFromTree() {
+  void removeFromStateTree() {
     _removedFromStateTree = true;
     _changes.add(ChangeRecord.removedFromStateTree);
     _changes.close();
@@ -38,12 +44,12 @@ abstract class StateElement {
     if (this is StateMap) {
       var map = this as StateMap;
       map.forEach((key, stateElement) {
-        stateElement.removeFromTree();
+        stateElement.removeFromStateTree();
       });
     } else if (this is StateList) {
       var list = this as StateList;
       list.forEach((stateElement) {
-        stateElement.removeFromTree();
+        stateElement.removeFromStateTree();
       });
     }
   }

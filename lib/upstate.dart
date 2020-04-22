@@ -19,7 +19,7 @@ class StateWidget extends InheritedWidget {
 
   @override
   bool updateShouldNotify(StateWidget oldWidget) {
-    oldWidget.state.removeFromTree();
+    oldWidget.state.removeFromStateTree();
     return oldWidget.state != this._state;
   }
 }
