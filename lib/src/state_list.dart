@@ -4,22 +4,24 @@
 part of 'base.dart';
 
 //TODO: finish overriding List methods that mutate the list
-class StateList extends StateElement with ListMixin<StateElement> {
+class StateList extends _StateIterable with ListMixin<StateElement> {
   List<StateElement> _list;
-  final StateElement _parent;
-  bool notifyAncestors;
-  bool useNums;
 
-  StateList(List list, StateElement parent)
-      : notifyAncestors = parent.notifyAncestors,
-        _parent = parent,
-        useNums = parent.useNums {
-    _list = _toStateElementList(list, this, useNums);
+  StateList(List list, _StateIterable parent) : super(parent) {
+    _list = _toStateElementList(list, this);
   }
 
   List toPrimitive() {
     var iterable = _list.map((e) => e.toPrimitive());
     return List.from(iterable);
+  }
+
+  void _initializeNullWithValue(
+      StateValue<Null> oldElement, StateValue newElement) {
+    int index = _list.indexOf(oldElement);
+    _list[index] = newElement;
+    oldElement.removeFromStateTree();
+    notifyChange();
   }
 
   operator [](int index) {
@@ -34,7 +36,7 @@ class StateList extends StateElement with ListMixin<StateElement> {
       throw ('A value you tried to change has been removed from the state tree');
     }
     if (_list[index] != value) {
-      _list[index] = _toStateElement(value, this, useNums);
+      _list[index] = _toStateElement(value, this);
       notifyChange();
     }
   }
@@ -46,7 +48,6 @@ class StateList extends StateElement with ListMixin<StateElement> {
     return _list.length;
   }
 
-  //TODO: should replace new null elements with empty StateValues
   set length(int newLength) {
     if (removedFromStateTree) {
       throw ('A value you tried to change has been removed from the state tree');
@@ -57,7 +58,7 @@ class StateList extends StateElement with ListMixin<StateElement> {
   @override
   void addAll(Iterable iterable) {
     iterable.forEach((element) {
-      add(_toStateElement(element, this, useNums));
+      add(_toStateElement(element, this));
     });
     notifyChange();
   }
@@ -85,7 +86,7 @@ class StateList extends StateElement with ListMixin<StateElement> {
     for (int i = start; i < end; i++) {
       this[i].removeFromStateTree();
     }
-    StateElement newFillValue = _toStateElement(fillValue, this, useNums);
+    StateElement newFillValue = _toStateElement(fillValue, this);
 
     _list.fillRange(start, end, newFillValue);
     notifyChange();
@@ -94,14 +95,14 @@ class StateList extends StateElement with ListMixin<StateElement> {
   @override
   void insert(int index, value) {
     this[index].removeFromStateTree();
-    _list.insert(index, _toStateElement(value, this, useNums));
+    _list.insert(index, _toStateElement(value, this));
     notifyChange();
   }
 
   @override
   insertAll(int index, Iterable iterable) {
     iterable.forEach((element) {
-      this.add(_toStateElement(element, this, useNums));
+      this.add(_toStateElement(element, this));
     });
     notifyChange();
   }
@@ -123,41 +124,80 @@ class StateList extends StateElement with ListMixin<StateElement> {
     return elem;
   }
 
-// removeLast() → E
-// Pops and returns the last object in this list. [...]
+  @override
+  StateElement removeLast() {
+    StateElement elem = _list.removeLast();
+    elem.removeFromStateTree();
+    notifyChange();
+    return elem;
+  }
 
-// removeRange(int start, int end) → void
-// Removes the objects in the range start inclusive to end exclusive. [...]
+  @override
+  void removeRange(int start, int end) {
+    var toRemove = _list.getRange(start, end);
+    _list.removeRange(start, end);
+    toRemove.forEach(_remove);
+    notifyChange();
+  }
 
-// removeWhere(bool test(E element)) → void
-// Removes all objects from this list that satisfy test. [...]
+  @override
+  void removeWhere(bool test(StateElement element)) {
+    var toRemove = _list.where(test);
+    _list.removeWhere(test);
+    toRemove.forEach(_remove);
+    notifyChange();
+  }
 
-// replaceRange(int start, int end, Iterable<E> replacement) → void
-// Removes the objects in the range start inclusive to end exclusive and inserts the contents of replacement in its place. [...]
+  @override
+  void replaceRange(int start, int end, Iterable<StateElement> replacement) {
+    var toRemove = _list.getRange(start, end);
+    _list.replaceRange(start, end, replacement);
+    toRemove.forEach(_remove);
+    notifyChange();
+  }
 
-// retainWhere(bool test(E element)) → void
-// Removes all objects from this list that fail to satisfy test. [...]
+  @override
+  void retainWhere(bool test(StateElement element)) {
+    var toRemove = _list.where((elem) => !test(elem));
+    _list.retainWhere(test);
+    toRemove.forEach(_remove);
+    notifyChange();
+  }
 
-// setAll(int index, Iterable<E> iterable) → void
-// Overwrites objects of this with the objects of iterable, starting at position index in this list. [...]
+  @override
+  setAll(int index, Iterable iterable) {
+    var toRemove = _list.getRange(index, iterable.length - 1);
+    int newIndex= index;
+    for(var elem in iterable){
+      _list[newIndex]=_toStateElement(elem, this);
+      index++;
+    }
+    toRemove.forEach(_remove);
+    notifyChange();
+  }
 
 // setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) → void
-// Copies the objects of iterable, skipping skipCount objects first, into the range start, inclusive, to end, exclusive, of the list. [...]
 
-// shuffle([Random random]) → void
-// Shuffles the elements of this list randomly.
+  @override
+  shuffle([Random random]) {
+    _list.shuffle(random);
+    notifyChange();
+  }
 
 // sort([int compare(E a, E b)]) → void
 // Sorts this list according to the order specified by the compare function. [...]
 }
 
-List<StateElement> _toStateElementList(
-    List list, StateElement parent, bool useNums) {
+List<StateElement> _toStateElementList(List list, StateElement parent) {
   List<StateElement> newList = [];
 
   list.forEach((element) {
-    newList.add(_toStateElement(element, parent, useNums));
+    newList.add(_toStateElement(element, parent));
   });
 
   return newList;
+}
+
+void _remove(StateElement element) {
+  element.removeFromStateTree();
 }

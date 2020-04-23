@@ -10,18 +10,24 @@
 part of 'base.dart';
 
 // StateMap is an unmodifiable map<String, StateElement>
-class StateMap extends StateElement with MapMixin<String, StateElement> {
+class StateMap extends _StateIterable with MapMixin<String, StateElement> {
   Map<String, StateElement> _map;
-  final StateElement _parent;
-  bool notifyAncestors;
-  bool useNums;
 
-  StateMap(Map<String, dynamic> map, [StateElement parent]) : _parent = parent {
-    if (_parent != null) {
-      notifyAncestors = _parent.notifyAncestors;
-      useNums = _parent.useNums;
-    }
-    _map = _toStateElementMap(map, this, useNums);
+  StateMap(Map<String, dynamic> map, [StateElement parent]) : super(parent) {
+    _map = _toStateElementMap(map, this);
+  }
+  
+  void _initializeNullWithValue(
+      StateValue<Null> oldElement, StateValue newElement) {
+    String k;
+    _map.forEach((key, value) {
+      if (value == oldElement) {
+        k = key;
+      }
+    });
+    _map[k] = newElement;
+    oldElement.removeFromStateTree();
+    notifyChange();
   }
 
   Iterable<String> get keys => _map.keys;
@@ -50,9 +56,10 @@ class StateMap extends StateElement with MapMixin<String, StateElement> {
 class StateObject extends StateMap {
   bool notifyAncestors;
   bool useNums;
+  bool stronglyTyped;
 
   StateObject(Map<String, dynamic> map,
-      {bool elementsShouldNotifyAncestors = true, this.useNums = false})
+      {bool elementsShouldNotifyAncestors = true, this.useNums = false, this.stronglyTyped = true})
       : notifyAncestors = elementsShouldNotifyAncestors,
         super(map);
 
@@ -99,11 +106,11 @@ class StateObject extends StateMap {
 }
 
 Map<String, StateElement> _toStateElementMap(
-    Map<String, dynamic> map, StateElement parent, bool useNums) {
+    Map<String, dynamic> map, StateElement parent) {
   var newMap = Map.from(map);
 
   newMap.updateAll((key, value) {
-    return _toStateElement(value, parent, useNums);
+    return _toStateElement(value, parent);
   });
   return newMap.cast<String, StateElement>();
 }

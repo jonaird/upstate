@@ -1,32 +1,22 @@
 library upstate;
 
 import 'package:flutter/widgets.dart';
-
 import 'dart:async';
 import 'src/base.dart';
 export 'src/base.dart';
 
-
 class StateWidget extends InheritedWidget {
   final Widget child;
-  final StateObject _state;
+  final StateObject state;
 
-  StateWidget({@required state, @required this.child, Key key})
-      : _state = state,
-        super(key: key);
+  StateWidget({@required this.state, @required this.child, Key key})
+      : super(key: key);
 
-  StateObject get state {
-    return _state;
-  }
+
 
   @override
-  bool updateShouldNotify(StateWidget oldWidget) {
-    bool dif = oldWidget.state != this._state;
-    if (dif) {
-      oldWidget.state.removeFromStateTree();
-    }
-    return dif;
-  }
+  bool updateShouldNotify(StateWidget oldWidget) => oldWidget.state != this.state;
+  
 }
 
 mixin StateConsumerMixin<T extends StatefulWidget> on State<T> {
@@ -52,19 +42,12 @@ mixin StateConsumerMixin<T extends StatefulWidget> on State<T> {
 
 class StateBuilder<T extends StateWidget> extends StatefulWidget {
   final List<StatePath> paths;
-  final Function _builder;
+  final Widget Function(BuildContext context, StateObject state, Widget child) builder;
   final Widget child;
 
   StateBuilder(
-      {@required
-          this.paths,
-      @required
-          Widget Function(BuildContext context, StateObject state, Widget child)
-              builder,
-      this.child,
-      Key key})
-      : _builder = builder,
-        super(key: key);
+      {@required this.paths, @required this.builder, this.child, Key key})
+      : super(key: key);
 
   @override
   _StateBuilderState createState() => _StateBuilderState<T>();
@@ -72,13 +55,13 @@ class StateBuilder<T extends StateWidget> extends StatefulWidget {
 
 class _StateBuilderState<T extends StateWidget> extends State<StateBuilder>
     with StateConsumerMixin {
-  StateObject _state;
+  StateObject state;
 
   @override
   void didChangeDependencies() {
     cancelSubscriptions();
-    _state = StateObject.of(context);
-    subscribeToPaths(widget.paths, _state);
+    state = StateObject.of<T>(context);
+    subscribeToPaths(widget.paths, state);
     super.didChangeDependencies();
   }
 
@@ -90,6 +73,6 @@ class _StateBuilderState<T extends StateWidget> extends State<StateBuilder>
 
   @override
   Widget build(BuildContext context) {
-    return widget._builder(context, _state, widget.child);
+    return widget.builder(context,state, widget.child);
   }
 }
