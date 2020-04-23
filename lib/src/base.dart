@@ -3,24 +3,26 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
+import '../upstate.dart';
 
-import 'maps.dart';
-import 'state_list.dart';
-import 'state_value.dart';
+part 'maps.dart';
+part 'state_list.dart';
+part 'state_value.dart';
 
 abstract class StateElement {
-  StateElement parent;
+  StateElement _parent;
   bool _removedFromStateTree = false;
   bool notifyAncestors;
+  bool useNums;
 
   final StreamController<StateElementChangeRecord> _changes = StreamController.broadcast();
 
   dynamic toPrimitive();
 
+  StateElement get parent => _parent;
 
-  bool get isRoot {
-    return this is StateObject;
-  }
+  bool get isRoot => this is StateObject;
 
   bool get removedFromStateTree => _removedFromStateTree;
 
@@ -45,7 +47,7 @@ abstract class StateElement {
 
   void removeFromStateTree() {
     
-    // _changes.add(ChangeRecord.removedFromStateTree);
+    _changes.add(StateElementChangeRecord.removedFromStateTree);
     _changes.close();
 
     //recursively removes children from tree;
@@ -112,14 +114,26 @@ class StatePath extends ListBase {
 //Not currently using removedFromStateTree. Maybe there's a use case?
 enum StateElementChangeRecord { changed, removedFromStateTree }
 
-StateElement toStateElement(obj, StateElement parent) {
+StateElement _toStateElement(obj, StateElement parent, bool useNums) {
   if (obj is Map) {
     return StateMap(obj, parent);
   } else if (obj is List) {
     return StateList(obj, parent);
-  } else if (obj is double||obj is int || obj is String||obj is bool||obj==null) {
-    return StateValue(obj, parent);
-  } 
+  } else if (obj is num) {
+    if(useNums){
+      return StateValue<num>(obj, parent);
+    } else if(obj is int){
+      return StateValue<int>(obj,parent);
+    } else{
+      return StateValue<double>(obj, parent);
+    }
+  }  else if (obj is String){
+    return StateValue<String>(obj, parent);
+  } else if (obj is bool){
+    return StateValue<bool>(obj, parent);
+  } else if (obj == null){
+    return NullableStateValue(parent);
+  }
   else {
     throw ("All elements in the state tree must be of type double, int, bool, String, Map, List or null. Instead element"
         "$obj was of type ${obj.runtimeType}");

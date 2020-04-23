@@ -1,14 +1,11 @@
 library upstate;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
 import 'dart:async';
 import 'src/base.dart';
-import 'src/maps.dart';
+export 'src/base.dart';
 
-export 'src/base.dart' hide toStateElement;
-export 'src/maps.dart' hide toStateElementMap;
-export 'src/state_list.dart' hide toStateElementList;
-export 'src/state_value.dart';
 
 class StateWidget extends InheritedWidget {
   final Widget child;

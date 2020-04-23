@@ -1,14 +1,20 @@
-import 'base.dart';
-import 'dart:collection';
+// import 'base.dart';
+// import 'dart:collection';
+
+part of 'base.dart';
 
 //TODO: finish overriding List methods that mutate the list
 class StateList extends StateElement with ListMixin<StateElement> {
   List<StateElement> _list;
-  final StateElement parent;
+  final StateElement _parent;
   bool notifyAncestors;
+  bool useNums;
 
-  StateList(List list, this.parent) : notifyAncestors = parent.notifyAncestors {
-    _list = toStateElementList(list, this);
+  StateList(List list, StateElement parent)
+      : notifyAncestors = parent.notifyAncestors,
+        _parent = parent,
+        useNums = parent.useNums {
+    _list = _toStateElementList(list, this, useNums);
   }
 
   List toPrimitive() {
@@ -28,7 +34,7 @@ class StateList extends StateElement with ListMixin<StateElement> {
       throw ('A value you tried to change has been removed from the state tree');
     }
     if (_list[index] != value) {
-      _list[index] = toStateElement(value,this);
+      _list[index] = _toStateElement(value, this, useNums);
       notifyChange();
     }
   }
@@ -51,7 +57,7 @@ class StateList extends StateElement with ListMixin<StateElement> {
   @override
   void addAll(Iterable iterable) {
     iterable.forEach((element) {
-      add(toStateElement(element, this));
+      add(_toStateElement(element, this, useNums));
     });
     notifyChange();
   }
@@ -79,7 +85,7 @@ class StateList extends StateElement with ListMixin<StateElement> {
     for (int i = start; i < end; i++) {
       this[i].removeFromStateTree();
     }
-    StateElement newFillValue = toStateElement(fillValue, this);
+    StateElement newFillValue = _toStateElement(fillValue, this, useNums);
 
     _list.fillRange(start, end, newFillValue);
     notifyChange();
@@ -88,14 +94,14 @@ class StateList extends StateElement with ListMixin<StateElement> {
   @override
   void insert(int index, value) {
     this[index].removeFromStateTree();
-    _list.insert(index, toStateElement(value, this));
+    _list.insert(index, _toStateElement(value, this, useNums));
     notifyChange();
   }
 
   @override
   insertAll(int index, Iterable iterable) {
     iterable.forEach((element) {
-      this.add(toStateElement(element, this));
+      this.add(_toStateElement(element, this, useNums));
     });
     notifyChange();
   }
@@ -145,11 +151,12 @@ class StateList extends StateElement with ListMixin<StateElement> {
 // Sorts this list according to the order specified by the compare function. [...]
 }
 
-List<StateElement> toStateElementList(List list, StateElement parent) {
+List<StateElement> _toStateElementList(
+    List list, StateElement parent, bool useNums) {
   List<StateElement> newList = [];
 
   list.forEach((element) {
-    newList.add(toStateElement(element, parent));
+    newList.add(_toStateElement(element, parent, useNums));
   });
 
   return newList;
