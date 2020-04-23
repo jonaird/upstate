@@ -44,7 +44,7 @@ abstract class StateElement {
 
 
   void removeFromStateTree() {
-    _removedFromStateTree = true;
+    
     // _changes.add(ChangeRecord.removedFromStateTree);
     _changes.close();
 
@@ -60,6 +60,7 @@ abstract class StateElement {
         stateElement.removeFromStateTree();
       });
     }
+    _removedFromStateTree = true;
   }
 
   String toJson(){
@@ -91,7 +92,7 @@ class StatePath extends ListBase {
     _path.length = newLength;
   }
 
-  String operator [](int index) => _path[index];
+  dynamic operator [](int index) => _path[index];
 
   void operator []=(int index, value) {
     if(!(value is int || value is String)){

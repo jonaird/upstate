@@ -38,7 +38,7 @@ class StateMap extends StateElement with MapMixin<String, StateElement> {
 
   Map toPrimitive(){
     var newMap = Map.from(_map);
-    newMap.updateAll((key, value) => value.toPrimitives());
+    newMap.updateAll((key, value) => value.toPrimitive());
     return newMap;
   }
 
@@ -69,11 +69,15 @@ class StateObject extends StateMap {
     StatePath newPath = StatePath.from(path);
 
     while (newPath.isNotEmpty) {
-      if ((element is StateMap && newPath.first is String)||(element is StateList && newPath.first is int)) {
+      if (element is StateMap && newPath.first is String) {
         var elem = element as StateMap;
         element = elem[newPath.first];
         newPath.removeAt(0);
-      } else {
+      } else if (element is StateList && newPath.first is int) {
+        var elem = element as StateList;
+        element = elem[newPath.first];
+        newPath.removeAt(0);
+      }  else {
         throw ('Invalid state path for state: $this');
       }
     }
