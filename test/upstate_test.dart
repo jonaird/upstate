@@ -79,7 +79,7 @@ void main() {
     });
     c = c.initialize<int>(5);
    
-    var timer = Timer(Duration(milliseconds: 200), () {
+    Timer(Duration(milliseconds: 200), () {
       sub.cancel();
       expect(removed, true);
     });

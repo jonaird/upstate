@@ -11,10 +11,7 @@ part 'state_value.dart';
 
 abstract class StateElement {
   final _StateIterable parent;
-  bool _removedFromStateTree = false;
-  bool notifyAncestors;
-  bool useNums;
-  bool stronglyTyped;
+  bool _removedFromStateTree = false, notifyAncestors, useNums, stronglyTyped;
 
   StateElement(this.parent) {
     if (parent != null) {

@@ -1,9 +1,5 @@
-// import 'base.dart';
-// import 'dart:collection';
-
 part of 'base.dart';
 
-//TODO: finish overriding List methods that mutate the list
 class StateList extends _StateIterable with ListMixin<StateElement> {
   List<StateElement> _list;
 
@@ -31,14 +27,13 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
     return _list[index];
   }
 
-  operator []=(int index, StateElement value) {
+  operator []=(int index, value) {
     if (removedFromStateTree) {
       throw ('A value you tried to change has been removed from the state tree');
     }
-    if (_list[index] != value) {
-      _list[index] = _toStateElement(value, this);
-      notifyChange();
-    }
+
+    _list[index] = _toStateElement(value, this);
+    notifyChange();
   }
 
   int get length {
@@ -55,23 +50,6 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
     _list.length = newLength;
   }
 
-  @override
-  void addAll(Iterable iterable) {
-    iterable.forEach((element) {
-      add(_toStateElement(element, this));
-    });
-    notifyChange();
-  }
-
-  @override
-  void clear() {
-    forEach((stateElement) {
-      stateElement.removeFromStateTree();
-    });
-    _list.clear();
-    notifyChange();
-  }
-
   //Many List methods make multiple changes to the List in one go.
   //We don't need to update our app state for every change and if we did so we
   //can run into errors and performance issue. Thus we have to override these methods to only
@@ -82,36 +60,49 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
   //that they've been removed from the state tree.
 
   @override
-  void fillRange(int start, int end, [fillValue]) {
-    for (int i = start; i < end; i++) {
-      this[i].removeFromStateTree();
-    }
-    StateElement newFillValue = _toStateElement(fillValue, this);
+  void addAll(Iterable iterable) {
+    insertAll(_list.length, iterable);
+  }
 
-    _list.fillRange(start, end, newFillValue);
+  @override
+  void clear() {
+    var newList = List.of(_list);
+    _list.clear();
+    newList.forEach(_remove);
+    notifyChange();
+  }
+
+  
+
+  @override
+  void fillRange(int start, int end, [fillValue]) {
+    var toRemove = getRange(start, end);
+    for(int i=start;i<end+1;i++){
+      _list[i]=_toStateElement(fillValue, this);
+    }
+    toRemove.forEach(_remove);
     notifyChange();
   }
 
   @override
   void insert(int index, value) {
-    this[index].removeFromStateTree();
     _list.insert(index, _toStateElement(value, this));
     notifyChange();
   }
 
   @override
   insertAll(int index, Iterable iterable) {
-    iterable.forEach((element) {
-      this.add(_toStateElement(element, this));
-    });
+    var newList = iterable.map((e) => _toStateElement(e,this));
+    _list.insertAll(index, newList);
     notifyChange();
   }
 
   @override
   bool remove(element) {
-    var el = element as StateElement;
-    el.removeFromStateTree();
+    assert(element is StateElement);
+    var elem = element as StateElement;
     bool returnVal = _list.remove(element);
+    elem.removeFromStateTree();
     notifyChange();
     return returnVal;
   }
@@ -167,16 +158,21 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
   @override
   setAll(int index, Iterable iterable) {
     var toRemove = _list.getRange(index, iterable.length - 1);
-    int newIndex= index;
-    for(var elem in iterable){
-      _list[newIndex]=_toStateElement(elem, this);
+    int newIndex = index;
+    for (var elem in iterable) {
+      _list[newIndex] = _toStateElement(elem, this);
       index++;
     }
     toRemove.forEach(_remove);
     notifyChange();
   }
 
-// setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) → void
+  //TODO
+  // @override
+  // setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+
+  //   _list.setRange(start, end, iterable)
+  // }
 
   @override
   shuffle([Random random]) {
@@ -184,8 +180,8 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
     notifyChange();
   }
 
-// sort([int compare(E a, E b)]) → void
-// Sorts this list according to the order specified by the compare function. [...]
+  //TODO
+//  sort([int compare(E a, E b)])
 }
 
 List<StateElement> _toStateElementList(List list, StateElement parent) {
