@@ -1,23 +1,14 @@
-// import 'dart:collection';
-// import 'dart:async';
-// import 'dart:convert';
-// import 'package:flutter/widgets.dart';
-// import '../upstate.dart';
-
-// import 'base.dart';
-// import 'state_list.dart';
-
 part of 'base.dart';
 
 // StateMap is an unmodifiable map<String, StateElement>
-class StateMap extends _StateIterable with MapMixin<String, StateElement> {
+class StateMap extends _StateIterable with MapMixin<String, dynamic> {
   Map<String, StateElement> _map;
 
   StateMap(Map<String, dynamic> map, [StateElement parent]) : super(parent) {
     _map = _toStateElementMap(map, this);
   }
-  
-  void _initializeNullWithValue(
+
+  void _instantiateNullWithValue(
       StateValue<Null> oldElement, StateValue newElement) {
     String k;
     _map.forEach((key, value) {
@@ -26,15 +17,14 @@ class StateMap extends _StateIterable with MapMixin<String, StateElement> {
       }
     });
     _map[k] = newElement;
-    oldElement.removeFromStateTree();
     notifyChange();
   }
 
   Iterable<String> get keys => _map.keys;
 
-  StateElement operator [](key) => _map[key];
+  operator [](key) => _map[key];
 
-  operator []=(key, value) {
+  operator []=(String key, value) {
     throw ('StateMaps are immutable.');
   }
 
@@ -54,20 +44,35 @@ class StateMap extends _StateIterable with MapMixin<String, StateElement> {
 }
 
 class StateObject extends StateMap {
-  bool notifyAncestors;
-  bool useNums;
-  bool stronglyTyped;
+  bool notifyParent,  useNums, stronglyTyped, nullable;
+  StateValue Function(dynamic value, StateElement parent) converter;
 
   StateObject(Map<String, dynamic> map,
-      {bool elementsShouldNotifyAncestors = true, this.useNums = false, this.stronglyTyped = true})
-      : notifyAncestors = elementsShouldNotifyAncestors,
-        super(map);
+      {bool elementsShouldNotifyParents = true,
+      this.useNums=false,
+      this.stronglyTyped=false,
+      this.nullable=true,
+      this.converter})
+      : notifyParent = elementsShouldNotifyParents,
+        super(map) {
+    if (useNums && !stronglyTyped) {
+      throw ("useNums can't be used without stronglyTyped:true");
+    } else if (nullable && !stronglyTyped) {
+      throw ("nullable can't be used without stronglyTyped:true");
+    }
+  }
 
   factory StateObject.fromJson(String json,
-      {bool elementsShouldNotifyAncestors = true}) {
+      {bool elementsShouldNotifyParents = true,
+      bool useNums = false,
+      bool stronglyTyped = true,
+      StateValue Function(dynamic value, StateElement parent) converter}) {
     var map = jsonDecode(json);
     return StateObject(map,
-        elementsShouldNotifyAncestors: elementsShouldNotifyAncestors);
+        elementsShouldNotifyParents: elementsShouldNotifyParents,
+        useNums: useNums,
+        stronglyTyped: stronglyTyped,
+        converter: converter);
   }
 
   static of<T extends StateWidget>(BuildContext context) =>
@@ -99,7 +104,7 @@ class StateObject extends StateMap {
 
   StreamSubscription subscribeTo(StatePath path, VoidCallback callback) {
     StateElement element = getElementAtPath(path);
-    return element.changes.listen((event) {
+    return element.notifications.listen((event) {
       callback();
     });
   }

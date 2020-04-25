@@ -1,6 +1,6 @@
 part of 'base.dart';
 
-class StateList extends _StateIterable with ListMixin<StateElement> {
+class StateList extends _StateIterable with ListMixin<dynamic> {
   List<StateElement> _list;
 
   StateList(List list, _StateIterable parent) : super(parent) {
@@ -12,15 +12,14 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
     return List.from(iterable);
   }
 
-  void _initializeNullWithValue(
+  void _instantiateNullWithValue(
       StateValue<Null> oldElement, StateValue newElement) {
     int index = _list.indexOf(oldElement);
     _list[index] = newElement;
-    oldElement.removeFromStateTree();
     notifyChange();
   }
 
-  operator [](int index) {
+  StateElement operator [](int index) {
     if (removedFromStateTree) {
       throw ('A value you tried to access has been removed from the state tree');
     }
@@ -31,7 +30,6 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
     if (removedFromStateTree) {
       throw ('A value you tried to change has been removed from the state tree');
     }
-
     _list[index] = _toStateElement(value, this);
     notifyChange();
   }
@@ -102,7 +100,7 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
     assert(element is StateElement);
     var elem = element as StateElement;
     bool returnVal = _list.remove(element);
-    elem.removeFromStateTree();
+    elem. _removeFromStateTree();
     notifyChange();
     return returnVal;
   }
@@ -110,7 +108,7 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
   @override
   StateElement removeAt(int index) {
     var elem = this[index];
-    elem.removeFromStateTree();
+    elem. _removeFromStateTree();
     _list.removeAt(index);
     return elem;
   }
@@ -118,7 +116,7 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
   @override
   StateElement removeLast() {
     StateElement elem = _list.removeLast();
-    elem.removeFromStateTree();
+    elem. _removeFromStateTree();
     notifyChange();
     return elem;
   }
@@ -140,7 +138,7 @@ class StateList extends _StateIterable with ListMixin<StateElement> {
   }
 
   @override
-  void replaceRange(int start, int end, Iterable<StateElement> replacement) {
+  void replaceRange(int start, int end, Iterable replacement) {
     var toRemove = _list.getRange(start, end);
     _list.replaceRange(start, end, replacement);
     toRemove.forEach(_remove);
@@ -194,6 +192,6 @@ List<StateElement> _toStateElementList(List list, StateElement parent) {
   return newList;
 }
 
-void _remove(StateElement element) {
-  element.removeFromStateTree();
+void _remove(element) {
+  element. _removeFromStateTree();
 }

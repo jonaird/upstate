@@ -5,6 +5,7 @@ import 'dart:async';
 import 'src/base.dart';
 export 'src/base.dart';
 
+
 class StateWidget extends InheritedWidget {
   final Widget child;
   final StateObject state;
@@ -20,13 +21,12 @@ class StateWidget extends InheritedWidget {
 }
 
 mixin StateConsumerMixin<T extends StatefulWidget> on State<T> {
-  List<StreamSubscription> _subscriptions = [];
+  List<StreamSubscription> subscriptions = [];
 
   subscribeToPaths(List<StatePath> paths, StateObject state) {
-    paths.forEach((path) {
-      _subscriptions
-          .add(state.subscribeTo(path, _setStateSubscriptionCallback));
-    });
+    for(var element in paths){
+      subscriptions.add(state.subscribeTo(element, _setStateSubscriptionCallback));
+    }
   }
 
   _setStateSubscriptionCallback() {
@@ -34,9 +34,9 @@ mixin StateConsumerMixin<T extends StatefulWidget> on State<T> {
   }
 
   cancelSubscriptions() {
-    _subscriptions.forEach((subscription) {
-      subscription.cancel();
-    });
+    for(var sub in subscriptions){
+      sub.cancel();
+    }
   }
 }
 

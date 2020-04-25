@@ -9,19 +9,22 @@ part 'maps.dart';
 part 'state_list.dart';
 part 'state_value.dart';
 
-abstract class StateElement {
+abstract class StateElement<T> {
   final _StateIterable parent;
-  bool _removedFromStateTree = false, notifyAncestors, useNums, stronglyTyped;
+  bool _removedFromStateTree = false, notifyParent, useNums, stronglyTyped, nullable;
+  StateValue Function(dynamic value, StateElement parent) converter;
+
 
   StateElement(this.parent) {
     if (parent != null) {
-      notifyAncestors = parent.notifyAncestors;
+      notifyParent = parent.notifyParent;
       useNums = parent.useNums;
       stronglyTyped = parent.stronglyTyped;
+      converter = parent.converter;
     }
   }
 
-  final StreamController<StateElementChangeRecord> _changes =
+  final StreamController<StateElementNotification> _notifications =
       StreamController.broadcast();
 
   dynamic toPrimitive();
@@ -30,35 +33,54 @@ abstract class StateElement {
 
   bool get removedFromStateTree => _removedFromStateTree;
 
-  Stream<StateElementChangeRecord> get changes => _changes.stream;
+  Stream<StateElementNotification> get notifications => _notifications.stream;
+
+  //These 4 are awkward but needed to do something like stateOjb['path']['deeper'][1].value
+  StateElement operator [](key){
+    throw('State element must be a map or list to use [] operator');
+  }
+  
+  operator []=(key, value){
+    throw('State element must be a map or list to use [] operator');
+  }
+
+  get value{
+    throw('State element must be a StateValue to get or set a value');
+  }
+
+  set value(T newValue){
+    throw('State element must be a StateValue to get or set a value');
+  }
+  
+
+  StateValue instantiate(value);
 
   //notifies subscribers of a value to a and optionally all ancestor state elements
   void notifyChange() {
     if (removedFromStateTree) {
       throw ('State element has been removed from the state tree and can\'t be modified');
     } else {
-      _changes.add(StateElementChangeRecord.changed);
-      if (notifyAncestors && !isRoot) {
+      _notifications.add(StateElementNotification.changed);
+      if (notifyParent && !isRoot) {
         parent.notifyChange();
       }
     }
   }
 
-  @visibleForTesting
-  void removeFromStateTree() {
-    _changes.add(StateElementChangeRecord.removedFromStateTree);
-    _changes.close();
+  void _removeFromStateTree() {
+    _notifications.add(StateElementNotification.removedFromStateTree);
+    _notifications.close();
 
     //recursively removes children from tree;
     if (this is StateMap) {
       var map = this as StateMap;
       map.forEach((key, stateElement) {
-        stateElement.removeFromStateTree();
+        stateElement._removeFromStateTree();
       });
     } else if (this is StateList) {
       var list = this as StateList;
       list.forEach((stateElement) {
-        stateElement.removeFromStateTree();
+        stateElement._removeFromStateTree();
       });
     }
     _removedFromStateTree = true;
@@ -66,6 +88,12 @@ abstract class StateElement {
 
   String toJson() {
     return jsonEncode(toPrimitive());
+  }
+ 
+//uncomment to perform tests
+  @visibleForTesting
+  void removeFromStateTree() {
+    _removeFromStateTree();
   }
 }
 
@@ -106,10 +134,17 @@ class StatePath extends ListBase {
   }
 }
 
-//Not currently using removedFromStateTree. Maybe there's a use case?
-enum StateElementChangeRecord { changed, removedFromStateTree }
+enum StateElementNotification { changed, instantiated, removedFromStateTree }
 
 StateElement _toStateElement(obj, StateElement parent) {
+
+  if( parent!=null && parent.converter!=null){
+    StateElement elem = parent.converter(obj,parent);
+    if(elem!=null){
+      return elem;
+    }
+  }
+
   if (obj is List) {
     return StateList(obj, parent);
   } else if (obj is Map) {
@@ -130,9 +165,14 @@ StateElement _toStateElement(obj, StateElement parent) {
 
       case Null:
         {
-          return StateValue<Null>(obj, parent);
+          if(parent.nullable){
+            return StateValue<dynamic>(obj, parent);
+          } else if(!parent.nullable){
+            return StateValue<Null>(obj, parent);
+          }
+          
         }
-
+      break;
       case int:
         {
           if (parent.useNums) {
@@ -155,34 +195,17 @@ StateElement _toStateElement(obj, StateElement parent) {
 
       default:
         {
-          throw ("All elements in the state tree must be of type double, int, bool, String, Map, List or null. Instead element"
-              "$obj was of type ${obj.runtimeType}");
+          throw ("All elements in the state tree must be of type double, int, bool, String, Map, List or null unless you set "
+          "stronglyTyped:false or use a converter");
         }
     }
   }
 
-  // else if (obj is num) {
-  //   if (useNums) {
-  //     return StateValue<num>(obj, parent);
-  //   } else if (obj is int) {
-  //     return StateValue<int>(obj, parent);
-  //   } else {
-  //     return StateValue<double>(obj, parent);
-  //   }
-  // } else if (obj is String) {
-
-  // } else if (obj is bool) {
-  //   return StateValue<bool>(obj, parent);
-  // } else if (obj == null) {
-  //   return StateValue<Null>(null, parent);
-  // } else {
-
-  // }
 }
 
 abstract class _StateIterable extends StateElement {
   _StateIterable(_StateIterable parent) : super(parent);
 
-  void _initializeNullWithValue(
+  void _instantiateNullWithValue(
       StateValue<Null> oldElement, StateValue newElement);
 }

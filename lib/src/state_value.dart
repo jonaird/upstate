@@ -1,6 +1,6 @@
 part of 'base.dart';
 
-class StateValue<T> extends StateElement {
+class StateValue<T> extends StateElement<T> {
   T _value;
 
   StateValue(T value, _StateIterable parent)
@@ -22,6 +22,10 @@ class StateValue<T> extends StateElement {
     notifyChange();
   }
 
+  operator [](key){
+    throw('you can\'t use the [] on state values');
+  }
+
   T call() {
     if (removedFromStateTree) {
       throw ('A value you tried to access has been removed from the state tree');
@@ -35,14 +39,16 @@ class StateValue<T> extends StateElement {
 
   T toPrimitive() => _value;
 
-  StateValue<N> initialize<N>(N newValue) {
+  StateValue instantiate(newValue) {
     if (_value != null) {
-      throw ('you can only initialize null state values');
-    } else if (!stronglyTyped) {
-      throw ('Initialize should only but used for stronglyTyped:true. Otherwise just use value=');
+      throw ('you can only instantiate null state values');
+    } else if (!stronglyTyped&&!nullable) {
+      throw ('Initialize should only but used for stronglyTyped:true and nullable:true');
     }
-    var newElement = StateValue<N>(newValue, parent);
-    parent._initializeNullWithValue(this, newElement);
+    var newElement = _toStateElement(newValue, this.parent);
+    parent._instantiateNullWithValue(this, newElement);
+    _notifications.add(StateElementNotification.instantiated);
+    _removeFromStateTree();
     return newElement;
   }
 }

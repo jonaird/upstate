@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'dart:convert';
+import '../lib/upstate.dart';
 
-import 'package:upstate/upstate.dart';
 
+//TODO: clean up tests and include widget tests
 void main() {
   Map a = <String, dynamic>{
     'a': 1,
@@ -51,7 +51,7 @@ void main() {
     var obj = StateObject(a);
     bool notified = false;
 
-    var subscription = obj.changes.listen((event) {
+    var subscription = obj.notifications.listen((event) {
       notified = true;
       expect(notified, true);
     });
@@ -64,7 +64,7 @@ void main() {
   test('initializing a null state value works', () {
     var b = StateObject({'a': null});
     var c = b['a'] as StateValue;
-    c = c.initialize<int>(5);
+    c = c.instantiate(5);
 
     expect(c.value, 5);
   });
@@ -72,12 +72,12 @@ void main() {
     var b = StateObject({'a': null});
     var c = b['a'] as StateValue;
     bool removed = false;
-    var sub = c.changes.listen((event) {
-      if (event == StateElementChangeRecord.removedFromStateTree) {
+    var sub = c.notifications.listen((event) {
+      if (event == StateElementNotification.removedFromStateTree) {
         removed = true;
       }
     });
-    c = c.initialize<int>(5);
+    c = c.instantiate(5);
    
     Timer(Duration(milliseconds: 200), () {
       sub.cancel();
