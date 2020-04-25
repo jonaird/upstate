@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/upstate.dart';
+import 'package:upstate/upstate.dart';
 
 
 //TODO: clean up tests and include widget tests
@@ -61,16 +61,16 @@ void main() {
     subscription.cancel();
   });
 
-  test('initializing a null state value works', () {
-    var b = StateObject({'a': null});
-    var c = b['a'] as StateValue;
+  test('initializing a null state value with nonNullable works', () {
+    var b = StateObject({'a': null}, typing: StateValueTyping.nonNullable);
+    var c = b['a'];
     c = c.instantiate(5);
 
     expect(c.value, 5);
   });
   test('initializing a null state value removes it from the tree', () {
-    var b = StateObject({'a': null});
-    var c = b['a'] as StateValue;
+    var b = StateObject({'a': null}, typing: StateValueTyping.nonNullable);
+    var c = b['a'];
     bool removed = false;
     var sub = c.notifications.listen((event) {
       if (event == StateElementNotification.removedFromStateTree) {
@@ -86,16 +86,16 @@ void main() {
   });
 
   test('useNums:true allows int and double interchangeably', () {
-    var b = StateObject({'a': 1}, useNums: true);
+    var b = StateObject({'a': 1}, converter: numConverter);
     var c = b['a'] as StateValue;
     c.value = 5.5;
 
     expect(c.value, 5.5);
   });
 
-  test('useNum:false disallows int and double interchangeably', () {
-    var b = StateObject({'a': 1}, useNums: false);
-    var c = b['a'] as StateValue;
+  test('not using num converter converter disallows int and double interchangeably', () {
+    var b = StateObject({'a': 1}, typing: StateValueTyping.strongTyping);
+    var c = b['a'];
     bool err = false;
     try {
       c.value = 5.5;
@@ -107,8 +107,10 @@ void main() {
   });
 
   test('stronglyTyped:false allows any value', (){
-    var b = StateObject(a, stronglyTyped: false);
+    var b = StateObject(a);
+    
     var path = StatePath(['a']);
+   
     bool err = false;
 
     try{
@@ -120,3 +122,6 @@ void main() {
     expect(err,false);
   });
 }
+
+
+

@@ -11,15 +11,14 @@ part 'state_value.dart';
 
 abstract class StateElement<T> {
   final _StateIterable parent;
-  bool _removedFromStateTree = false, notifyParent, useNums, stronglyTyped, nullable;
+  bool _removedFromStateTree = false, notifyParent;
   StateValue Function(dynamic value, StateElement parent) converter;
-
+  StateValueTyping typing;
 
   StateElement(this.parent) {
     if (parent != null) {
       notifyParent = parent.notifyParent;
-      useNums = parent.useNums;
-      stronglyTyped = parent.stronglyTyped;
+      typing = parent.typing;
       converter = parent.converter;
     }
   }
@@ -35,27 +34,6 @@ abstract class StateElement<T> {
 
   Stream<StateElementNotification> get notifications => _notifications.stream;
 
-  //These 4 are awkward but needed to do something like stateOjb['path']['deeper'][1].value
-  StateElement operator [](key){
-    throw('State element must be a map or list to use [] operator');
-  }
-  
-  operator []=(key, value){
-    throw('State element must be a map or list to use [] operator');
-  }
-
-  get value{
-    throw('State element must be a StateValue to get or set a value');
-  }
-
-  set value(T newValue){
-    throw('State element must be a StateValue to get or set a value');
-  }
-  
-
-  StateValue instantiate(value);
-
-  //notifies subscribers of a value to a and optionally all ancestor state elements
   void notifyChange() {
     if (removedFromStateTree) {
       throw ('State element has been removed from the state tree and can\'t be modified');
@@ -89,7 +67,7 @@ abstract class StateElement<T> {
   String toJson() {
     return jsonEncode(toPrimitive());
   }
- 
+
 //uncomment to perform tests
   @visibleForTesting
   void removeFromStateTree() {
@@ -101,11 +79,11 @@ class StatePath extends ListBase {
   List _path;
 
   StatePath(List path) {
-    path.forEach((key) {
+    for (var key in path) {
       if (!(key is int || key is String)) {
         throw ('StatePaths must contain only Strings or ints');
       }
-    });
+    }
     _path = path;
   }
 
@@ -128,19 +106,17 @@ class StatePath extends ListBase {
     _path[index] = value;
   }
 
-  @override
-  List toList({growable = true}) {
-    return List.from(_path);
-  }
 }
+
+
+
 
 enum StateElementNotification { changed, instantiated, removedFromStateTree }
 
 StateElement _toStateElement(obj, StateElement parent) {
-
-  if( parent!=null && parent.converter!=null){
-    StateElement elem = parent.converter(obj,parent);
-    if(elem!=null){
+  if (parent != null && parent.converter != null) {
+    StateElement elem = parent.converter(obj, parent);
+    if (elem != null) {
       return elem;
     }
   }
@@ -149,7 +125,7 @@ StateElement _toStateElement(obj, StateElement parent) {
     return StateList(obj, parent);
   } else if (obj is Map) {
     return StateMap(obj, parent);
-  } else if (!parent.stronglyTyped) {
+  } else if (parent.typing == StateValueTyping.dynamicTyping) {
     return StateValue<dynamic>(obj, parent);
   } else {
     switch (obj.runtimeType) {
@@ -165,42 +141,32 @@ StateElement _toStateElement(obj, StateElement parent) {
 
       case Null:
         {
-          if(parent.nullable){
-            return StateValue<dynamic>(obj, parent);
-          } else if(!parent.nullable){
+          if (parent.typing == StateValueTyping.nonNullable) {
             return StateValue<Null>(obj, parent);
+          } else {
+            return StateValue<dynamic>(obj, parent);
           }
-          
         }
-      break;
+        break;
       case int:
         {
-          if (parent.useNums) {
-            return StateValue<num>(obj, parent);
-          } else {
-            return StateValue<int>(obj, parent);
-          }
+          return StateValue<int>(obj, parent);
         }
         break;
 
       case double:
         {
-          if (parent.useNums) {
-            return StateValue<num>(obj, parent);
-          } else {
-            return StateValue<double>(obj, parent);
-          }
+          return StateValue<double>(obj, parent);
         }
         break;
 
       default:
         {
           throw ("All elements in the state tree must be of type double, int, bool, String, Map, List or null unless you set "
-          "stronglyTyped:false or use a converter");
+              "stronglyTyped:false or use a converter");
         }
     }
   }
-
 }
 
 abstract class _StateIterable extends StateElement {
@@ -208,4 +174,10 @@ abstract class _StateIterable extends StateElement {
 
   void _instantiateNullWithValue(
       StateValue<Null> oldElement, StateValue newElement);
+}
+
+StateValue numConverter(number, StateElement parent){
+  if(number is num){
+    return StateValue<num>(number,parent);
+  }
 }

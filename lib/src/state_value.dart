@@ -22,28 +22,18 @@ class StateValue<T> extends StateElement<T> {
     notifyChange();
   }
 
-  operator [](key){
-    throw('you can\'t use the [] on state values');
-  }
-
-  T call() {
-    if (removedFromStateTree) {
-      throw ('A value you tried to access has been removed from the state tree');
-    }
-    return _value;
-  }
 
   bool get isNull => _value == null;
 
   bool get isNotNull => _value != null;
 
-  T toPrimitive() => _value;
+  T toPrimitive() => _value.toPrimitive();
 
   StateValue instantiate(newValue) {
-    if (_value != null) {
+    if (typing==StateValueTyping.dynamicTyping) {
+      throw ('Initialize should only but used for when not using dynamic typing');
+    } else if (_value != null) {
       throw ('you can only instantiate null state values');
-    } else if (!stronglyTyped&&!nullable) {
-      throw ('Initialize should only but used for stronglyTyped:true and nullable:true');
     }
     var newElement = _toStateElement(newValue, this.parent);
     parent._instantiateNullWithValue(this, newElement);
@@ -51,4 +41,16 @@ class StateValue<T> extends StateElement<T> {
     _removeFromStateTree();
     return newElement;
   }
+}
+
+enum StateValueTyping{
+  dynamicTyping, strongTyping, nonNullable 
+}
+
+
+
+//needed for stateValue.toPrimitive(); which is needed for json conversion
+//override for custom json serialization. will default to toJson();
+extension on Object{
+  toPrimitive()=>this;
 }

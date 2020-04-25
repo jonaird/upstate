@@ -44,41 +44,32 @@ class StateMap extends _StateIterable with MapMixin<String, dynamic> {
 }
 
 class StateObject extends StateMap {
-  bool notifyParent,  useNums, stronglyTyped, nullable;
+  bool notifyParent;
   StateValue Function(dynamic value, StateElement parent) converter;
+  StateValueTyping typing;
 
   StateObject(Map<String, dynamic> map,
       {bool elementsShouldNotifyParents = true,
-      this.useNums=false,
-      this.stronglyTyped=false,
-      this.nullable=true,
+      this.typing = StateValueTyping.dynamicTyping,
       this.converter})
       : notifyParent = elementsShouldNotifyParents,
-        super(map) {
-    if (useNums && !stronglyTyped) {
-      throw ("useNums can't be used without stronglyTyped:true");
-    } else if (nullable && !stronglyTyped) {
-      throw ("nullable can't be used without stronglyTyped:true");
-    }
-  }
+        super(map);
 
-  factory StateObject.fromJson(String json,
+  static StateObject fromJson(String json,
       {bool elementsShouldNotifyParents = true,
-      bool useNums = false,
-      bool stronglyTyped = true,
+      StateValueTyping typing = StateValueTyping.dynamicTyping,
       StateValue Function(dynamic value, StateElement parent) converter}) {
     var map = jsonDecode(json);
     return StateObject(map,
         elementsShouldNotifyParents: elementsShouldNotifyParents,
-        useNums: useNums,
-        stronglyTyped: stronglyTyped,
+        typing: typing,
         converter: converter);
   }
 
   static of<T extends StateWidget>(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<T>().state;
 
-  StateValue call(StatePath path) {
+  StateValue<T> call<T>(StatePath path) {
     return getElementAtPath(path);
   }
 
