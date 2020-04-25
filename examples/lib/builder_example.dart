@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:upstate/upstate.dart';
 
-void main() {
- runApp(StateWidget(
-    state: StateObject({'counter': 1}), 
-    child: MyApp()));
-}
+
 
 class MyApp extends StatelessWidget {
   @override
@@ -22,15 +18,12 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatelessWidget {
-  StateObject state;
-
-  void _incrementCounter() {
-    state(StatePath(['counter'])).value++; //you can use the call method with a state value to get a value
-  }
+  
 
   @override
   Widget build(BuildContext context) {
-    state = StateObject.of(context);
+    var state = StateObject.of(context);
+    var counter = state['counter'];
     return Scaffold(
       appBar: AppBar(
         title: Text('Flutter Demo Home Page'),
@@ -54,7 +47,7 @@ class MyHomePage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: (){counter.value++;},
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ),

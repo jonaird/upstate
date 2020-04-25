@@ -67,7 +67,7 @@ class StateObject extends StateMap {
   }
 
   static of<T extends StateWidget>(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<T>().state;
+      context.dependOnInheritedWidgetOfExactType<T>()?.state;
 
   StateValue<T> call<T>(StatePath path) {
     return getElementAtPath(path);

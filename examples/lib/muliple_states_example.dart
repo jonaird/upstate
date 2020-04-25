@@ -7,38 +7,32 @@ class GlobalState extends StateWidget{
 }
 
 
-void main() {
- runApp(GlobalState(
-    state: StateObject({'counter': 1}), 
-    child: MyApp()));
-}
-
 class MyApp extends StatelessWidget {
+  
   @override
   Widget build(BuildContext context) {
+    // var state = 
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: StateWidget(
-        state:StateObject({"some":{"other":['state','object']}}),
-        child: MyHomePage()),
+      home: GlobalState(
+              state:StateObject({'counter': 0}),
+              child: StateWidget(
+                state:StateObject({"some":{"other":['state','object']}}),
+                child: MyHomePage()),
+      ),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  StateObject state;
-
-  void _incrementCounter() {
-    state(StatePath(['counter'])).value++; //you can use the call method with a state value to get a value
-  }
 
   @override
   Widget build(BuildContext context) {
-    state = StateObject.of<GlobalState>(context); //set generic for a specific state widget
+    var counter = StateObject.of<GlobalState>(context)['counter'];//set generic for a specific state widget
     return Scaffold(
       appBar: AppBar(
         title: Text('Flutter Demo Home Page'),
@@ -62,7 +56,7 @@ class MyHomePage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: (){counter.value++;},
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ),

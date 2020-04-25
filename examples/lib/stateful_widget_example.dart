@@ -34,7 +34,7 @@ class _MyHomePageState extends State<MyHomePage> with StateConsumerMixin {
   var counterPath = StatePath(['counter']);
 
   void _incrementCounter() {
-    state(counterPath).value++; //Use the call method with a StatePath
+    state(counterPath).value++; //you can use the call method with a StatePath to get a state value
   }
 
   @override
