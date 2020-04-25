@@ -56,6 +56,7 @@ class StateList extends _StateIterable with ListMixin<dynamic> {
   //has been removed from the state tree.
   //We also need to override methods that removes elements to notify them
   //that they've been removed from the state tree.
+  //TODO: these functions need to be reviewed
 
   @override
   void addAll(Iterable iterable) {

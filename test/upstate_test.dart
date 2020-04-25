@@ -5,6 +5,7 @@ import 'package:upstate/upstate.dart';
 
 
 //TODO: clean up tests and include widget tests
+//to perform test uncomment base.dart line 71
 void main() {
   Map a = <String, dynamic>{
     'a': 1,

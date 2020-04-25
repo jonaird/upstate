@@ -69,10 +69,10 @@ abstract class StateElement<T> {
   }
 
 //uncomment to perform tests
-  @visibleForTesting
-  void removeFromStateTree() {
-    _removeFromStateTree();
-  }
+  // @visibleForTesting
+  // void removeFromStateTree() {
+  //   _removeFromStateTree();
+  // }
 }
 
 class StatePath extends ListBase {
@@ -105,11 +105,7 @@ class StatePath extends ListBase {
     }
     _path[index] = value;
   }
-
 }
-
-
-
 
 enum StateElementNotification { changed, instantiated, removedFromStateTree }
 
@@ -176,8 +172,10 @@ abstract class _StateIterable extends StateElement {
       StateValue<Null> oldElement, StateValue newElement);
 }
 
-StateValue numConverter(number, StateElement parent){
-  if(number is num){
-    return StateValue<num>(number,parent);
+StateValue numConverter(number, StateElement parent) {
+  if (number is num) {
+    return StateValue<num>(number, parent);
+  } else {
+    return null;
   }
 }

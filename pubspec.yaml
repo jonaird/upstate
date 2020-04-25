@@ -1,8 +1,7 @@
 name: upstate
-description: A new Flutter package project.
-version: 0.0.1
-author:
-homepage:
+description: A simple yet powerful state management library for flutter
+version: 0.5.0
+repository: "https://github.com/jonaird/upstate"
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
