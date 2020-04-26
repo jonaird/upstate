@@ -45,7 +45,7 @@ class StateMap extends _StateIterable with MapMixin<String, dynamic> {
 
 class StateObject extends StateMap {
   bool notifyParent;
-  StateValue Function(dynamic value, StateElement parent) converter;
+  StateElement Function(dynamic value, StateElement parent) converter;
   StateValueTyping typing;
 
   StateObject(Map<String, dynamic> map,
@@ -58,7 +58,7 @@ class StateObject extends StateMap {
   static StateObject fromJson(String json,
       {bool elementsShouldNotifyParents = true,
       StateValueTyping typing = StateValueTyping.dynamicTyping,
-      StateValue Function(dynamic value, StateElement parent) converter}) {
+      StateElement Function(dynamic value, StateElement parent) converter}) {
     var map = jsonDecode(json);
     return StateObject(map,
         elementsShouldNotifyParents: elementsShouldNotifyParents,
@@ -69,22 +69,17 @@ class StateObject extends StateMap {
   static of<T extends StateWidget>(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<T>()?.state;
 
-  StateValue<T> call<T>(StatePath path) {
+  T call<T>(StatePath path) {
     return getElementFromPath(path);
   }
 
-  StateElement getElementFromPath(StatePath path) {
-    StateElement element = this;
+  dynamic getElementFromPath(StatePath path) {
+    dynamic element = this;
     StatePath newPath = StatePath.from(path);
 
     while (newPath.isNotEmpty) {
-      if (element is StateMap && newPath.first is String) {
-        var elem = element as StateMap;
-        element = elem[newPath.first];
-        newPath.removeAt(0);
-      } else if (element is StateList && newPath.first is int) {
-        var elem = element as StateList;
-        element = elem[newPath.first];
+      if ((element is StateMap && newPath.first is String)||(element is StateList && newPath.first is int)) {
+        element = element[newPath.first];
         newPath.removeAt(0);
       } else {
         throw ('Invalid state path for state: $this');

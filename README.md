@@ -278,11 +278,5 @@ In our converter method:
 } 
 ```
 ### Quick Tips
-You can use generics on the call operator of a state object to get error messages in your IDE and code completion. 
-
-![generics with the call operator](https://www.bitpaste.app/api/file/786c631237f246a584dd0583bc3f1aafadd76e3afe0afcef5a59b00e6f734201)
-The call method only returns state values to get intermediary state maps and lists, you can use:
-`state.getElementFromPath(path);` 
- 
 
 If you're changing the structure of your state around a lot you can save your commonly used state paths in a different file and import it so you only have to change them once.

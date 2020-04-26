@@ -1,6 +1,6 @@
 part of 'base.dart';
 
-class StateValue<T> extends StateElement<T> {
+class StateValue<T> extends StateElement {
   T _value;
 
   StateValue(T value, _StateIterable parent)
@@ -30,8 +30,8 @@ class StateValue<T> extends StateElement<T> {
   T toPrimitive() => _value.toPrimitive();
 
   StateValue instantiate(newValue) {
-    if (typing==StateValueTyping.dynamicTyping) {
-      throw ('Initialize should only but used for when not using dynamic typing');
+    if (typing!=StateValueTyping.nonNullable) {
+      throw ('Initialize should only but used for when not using nonNullable typing');
     } else if (_value != null) {
       throw ('you can only instantiate null state values');
     }
@@ -54,3 +54,4 @@ enum StateValueTyping{
 extension on Object{
   toPrimitive()=>this;
 }
+

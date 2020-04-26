@@ -9,10 +9,10 @@ part 'maps.dart';
 part 'state_list.dart';
 part 'state_value.dart';
 
-abstract class StateElement<T> {
+abstract class StateElement{
   final _StateIterable parent;
   bool _removedFromStateTree = false, notifyParent;
-  StateValue Function(dynamic value, StateElement parent) converter;
+  StateElement Function(dynamic value, StateElement parent) converter;
   StateValueTyping typing;
 
   StateElement(this.parent) {
@@ -22,6 +22,12 @@ abstract class StateElement<T> {
       converter = parent.converter;
     }
   }
+
+//uncomment to perform tests
+  // @visibleForTesting
+  // void removeFromStateTree() {
+  //   _removeFromStateTree();
+  // }
 
   final StreamController<StateElementNotification> _notifications =
       StreamController.broadcast();
@@ -68,11 +74,6 @@ abstract class StateElement<T> {
     return jsonEncode(toPrimitive());
   }
 
-//uncomment to perform tests
-  // @visibleForTesting
-  // void removeFromStateTree() {
-  //   _removeFromStateTree();
-  // }
 }
 
 class StatePath extends ListBase {
