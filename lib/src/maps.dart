@@ -70,10 +70,10 @@ class StateObject extends StateMap {
       context.dependOnInheritedWidgetOfExactType<T>()?.state;
 
   StateValue<T> call<T>(StatePath path) {
-    return getElementAtPath(path);
+    return getElementFromPath(path);
   }
 
-  StateElement getElementAtPath(StatePath path) {
+  StateElement getElementFromPath(StatePath path) {
     StateElement element = this;
     StatePath newPath = StatePath.from(path);
 
@@ -94,7 +94,7 @@ class StateObject extends StateMap {
   }
 
   StreamSubscription subscribeTo(StatePath path, VoidCallback callback) {
-    StateElement element = getElementAtPath(path);
+    StateElement element = getElementFromPath(path);
     return element.notifications.listen((event) {
       callback();
     });
