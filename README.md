@@ -10,9 +10,12 @@ dependencies:
 ``` 
 
 ## Usage 
-To get started quickly check out the [examples](https://github.com/jonaird/upstate/tree/master/example/lib).
+To get started quickly check out the [examples](https://github.com/jonaird/upstate/tree/master/example/lib).  
+ 
+(This tutorial is a bit long and messy. Will update it asap and include how to use state models.)
  
 ### State Model
+
 Just like how everything onscreen is made up of a tree of widgets, in Upstate, your state is stored in a tree of state elements. There are 4 kinds of of state elements; StateMap, StateList, StateValue, and StateObject. As their names imply, StateMap is a map that contains StateElements as values, StateList is a list of StateElements, and StateValues contain the values of your state (Technically StateMap and StateList are StateElements that implement map and list mixins respectively). Pretty simple, right? StateObject is a StateMap that is the root element of the state tree. StateMap keys must be strings. Each StateElement uses a broadcast stream behind the scenes to notify and update widgets if the state has changed. Upstate uses the "lifting state up" pattern to provide its state to all descendent widgets.:
 ```
 void main() {

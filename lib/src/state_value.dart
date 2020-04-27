@@ -1,5 +1,8 @@
 part of 'base.dart';
 
+/// StateValue is a [StateElement] that holds a primitive value and notifies listeners when it's value changes. 
+/// It can be used to used to hold generic objects but this is not the recommended approach.
+
 class StateValue<T> extends StateElement {
   T _value;
 
@@ -29,6 +32,7 @@ class StateValue<T> extends StateElement {
 
   T toPrimitive() => _value.toPrimitive();
 
+  
   StateValue instantiate(newValue) {
     if (typing!=StateValueTyping.nonNullable) {
       throw ('Initialize should only but used for when not using nonNullable typing');
