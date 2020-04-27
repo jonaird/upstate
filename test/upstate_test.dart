@@ -7,7 +7,9 @@ import 'package:upstate/upstate.dart';
 //TODO: clean up tests and include widget tests
 //to perform test uncomment base.dart line 71
 void main() {
-  Map a = <String, dynamic>{
+
+
+  var a = <String, dynamic>{
     'a': 1,
     "b": 2.2,
     "c": [
@@ -20,6 +22,9 @@ void main() {
       "deeper": {"evenDeeper": 'a string'}
     }
   };
+
+
+
 
   test('to and from json should result in same values', () {
     var first = StateObject(a);
@@ -128,3 +133,31 @@ void main() {
 
 
 
+
+
+
+
+
+var state = <String, dynamic>{
+    'a': 1,
+    "b": 2.2,
+    "c": [
+      'a',
+      'b',
+      2.6,
+      {"a": false}
+    ],
+    "d": {
+      "deeper": {"evenDeeper": 'a string'}
+    }
+  };
+
+
+
+
+
+
+
+
+
+  
