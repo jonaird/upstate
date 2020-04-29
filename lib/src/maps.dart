@@ -8,21 +8,32 @@ class StateMap extends _StateIterable with MapMixin<String, dynamic> {
     _map = _toStateElementMap(map, this);
   }
 
+  _getElementFromKey(key) {
+    return _map[key];
+  }
+
   void _instantiateNullWithValue(
       StateValue<Null> oldElement, StateValue newElement) {
     String k;
-    _map.forEach((key, value) {
-      if (value == oldElement) {
-        k = key;
+    for (var key in _map.keys){
+      if(_map[key]==oldElement){
+        k=key;
       }
-    });
+    }
     _map[k] = newElement;
     notifyChange();
   }
 
   Iterable<String> get keys => _map.keys;
 
-  operator [](key) => _map[key];
+  operator [](key) {
+    if (removedFromStateTree) {
+      throw ('A value you tried to access has been removed from the state tree');
+    } else if(typeSafety==TypeSafety.complete){
+      throw('you can\'t use [] operators with complete type safety. Instead use the call method with a state path');
+    }
+    return _map[key];
+  }
 
   operator []=(String key, value) {
     throw ('StateMaps are immutable.');
@@ -47,52 +58,43 @@ class StateObject extends StateMap {
   bool notifyParent;
   StateElement Function(dynamic value, StateElement parent) converter;
   StateValueTyping typing;
+  TypeSafety typeSafety;
 
   StateObject(Map<String, dynamic> map,
       {bool elementsShouldNotifyParents = true,
       this.typing = StateValueTyping.dynamicTyping,
-      this.converter})
+      this.converter,
+      this.typeSafety = TypeSafety.unsafe})
       : notifyParent = elementsShouldNotifyParents,
         super(map);
 
   static StateObject fromJson(String json,
-      {bool elementsShouldNotifyParents = true,
+      {bool elementsShouldNotifyParents,
       StateValueTyping typing = StateValueTyping.dynamicTyping,
+      TypeSafety typeSafety = TypeSafety.unsafe,
       StateElement Function(dynamic value, StateElement parent) converter}) {
     var map = jsonDecode(json);
     return StateObject(map,
         elementsShouldNotifyParents: elementsShouldNotifyParents,
         typing: typing,
+        typeSafety: typeSafety,
         converter: converter);
   }
 
-  static of<T extends StateWidget>(BuildContext context) =>
+  static StateObject of<T extends StateWidget>(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<T>()?.state;
 
-  T call<T>(StatePath path) {
-    return getElementFromPath(path);
+  void unmount() {
+    _removeFromStateTree();
   }
 
-  dynamic getElementFromPath(StatePath path) {
-    dynamic element = this;
-    StatePath newPath = StatePath.from(path);
-
-    while (newPath.isNotEmpty) {
-      if ((element is StateMap && newPath.first is String)||(element is StateList && newPath.first is int)) {
-        element = element[newPath.first];
-        newPath.removeAt(0);
-      } else {
-        throw ('Invalid state path for state: $this');
-      }
+  operator [](key) {
+    if (removedFromStateTree) {
+      throw ('A value you tried to access has been removed from the state tree');
+    } else if(typeSafety!=TypeSafety.unsafe){
+      throw('you can\'t use [] operators on state objects while using type-safe options');
     }
-    return element;
-  }
-
-  StreamSubscription subscribeTo(StatePath path, VoidCallback callback) {
-    StateElement element = getElementFromPath(path);
-    return element.notifications.listen((event) {
-      callback();
-    });
+    return _map[key];
   }
 }
 

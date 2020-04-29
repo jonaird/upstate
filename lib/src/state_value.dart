@@ -33,6 +33,7 @@ class StateValue<T> extends StateElement {
   T toPrimitive() => _value.toPrimitive();
 
   
+
   StateValue instantiate(newValue) {
     if (typing!=StateValueTyping.nonNullable) {
       throw ('Initialize should only but used for when not using nonNullable typing');

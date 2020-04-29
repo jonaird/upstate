@@ -1,6 +1,6 @@
 name: upstate
 description: A simple yet powerful state management library for flutter
-version: 0.5.1
+version: 0.5.2
 repository: "https://github.com/jonaird/upstate"
 
 environment:

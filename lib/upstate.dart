@@ -5,6 +5,7 @@ import 'dart:async';
 import 'src/base.dart';
 export 'src/base.dart';
 
+//TODO: Remove unnecessary child from builder
 
 class StateWidget extends InheritedWidget {
   final Widget child;
@@ -13,28 +14,34 @@ class StateWidget extends InheritedWidget {
   StateWidget({@required this.state, @required this.child, Key key})
       : super(key: key);
 
-
-
   @override
-  bool updateShouldNotify(StateWidget oldWidget) => oldWidget.state != this.state;
-  
+  bool updateShouldNotify(StateWidget oldWidget) {
+    if(oldWidget.state != state){
+      oldWidget.state.unmount();
+      return true;
+    } else{
+      return false;
+    }
+  }
 }
 
 mixin StateConsumerMixin<T extends StatefulWidget> on State<T> {
   List<StreamSubscription> subscriptions = [];
 
   subscribeToPaths(List<StatePath> paths, StateObject state) {
-    for(var element in paths){
-      subscriptions.add(state.subscribeTo(element, _setStateSubscriptionCallback));
+    for (var path in paths) {
+      var element = state(path) as StateElement;
+      var sub = element.subscribe(_setStateSubscriptionCallback);
+      subscriptions.add(sub);
     }
   }
 
-  _setStateSubscriptionCallback() {
+  _setStateSubscriptionCallback(event) {
     setState(() {});
   }
 
   cancelSubscriptions() {
-    for(var sub in subscriptions){
+    for (var sub in subscriptions) {
       sub.cancel();
     }
   }
@@ -42,7 +49,8 @@ mixin StateConsumerMixin<T extends StatefulWidget> on State<T> {
 
 class StateBuilder<T extends StateWidget> extends StatefulWidget {
   final List<StatePath> paths;
-  final Widget Function(BuildContext context, StateObject state, Widget child) builder;
+  final Widget Function(BuildContext context, StateObject state, Widget child)
+      builder;
   final Widget child;
 
   StateBuilder(
@@ -73,6 +81,6 @@ class _StateBuilderState<T extends StateWidget> extends State<StateBuilder>
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(context,state, widget.child);
+    return widget.builder(context, state, widget.child);
   }
 }

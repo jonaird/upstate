@@ -127,37 +127,47 @@ void main() {
     }
     expect(err,false);
   });
+
+  test('type safety throws error when using dynamic state path', (){
+    var state = StateObject(a,typeSafety: TypeSafety.complete);
+    var err = false;
+    try{
+      var b = state(StatePath(['a']));
+    }catch(error){
+      err=true;
+    }
+
+    expect(err,true);
+
+  });
+  
+  test('using type safety throws error when using incorrect state path generic', (){
+    var state = StateObject(a,typeSafety: TypeSafety.complete);
+    var err = false;
+    try{
+      var b = state(StatePath<int>(['a']));
+    }catch(error){
+      
+      err=true;
+    }
+    expect(err,true);
+
+  });
+
+  test('type safety doesn\'t thow error when using correct state path', (){
+    var state = StateObject(a,typeSafety: TypeSafety.complete);
+    var err = false;
+    try{
+      var b = state(StatePath<StateValue<dynamic>>(['a']));
+    }catch(error){
+      err=true;
+    }
+
+    expect(err,false);
+
+  });
+
 }
 
 
 
-
-
-
-
-
-
-
-var state = <String, dynamic>{
-    'a': 1,
-    "b": 2.2,
-    "c": [
-      'a',
-      'b',
-      2.6,
-      {"a": false}
-    ],
-    "d": {
-      "deeper": {"evenDeeper": 'a string'}
-    }
-  };
-
-
-
-
-
-
-
-
-
-  
