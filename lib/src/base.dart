@@ -95,7 +95,7 @@ abstract class StateElement {
 ///StatePath is a helper class that implements the list interface and represents a path in the state tree.
 class StatePath<T> extends ListBase {
   List _path;
-  final type = T;
+  final expectedType = T;
 
   StatePath(List path) {
     for (var key in path) {
@@ -208,15 +208,15 @@ abstract class _StateIterable extends StateElement {
   }
 
   T call<T>(StatePath path) {
-    if (typeSafety != TypeSafety.unsafe && path.type == dynamic) {
+    if (typeSafety != TypeSafety.unsafe && path.expectedType == dynamic) {
       //TODO: include article
       throw ('when using complete type safety all paths must have their expected state element types as '
           'their generic values. See this article for more info:');
     }
 
     var stateElement = _getElementFromPath(path);
-    if (path.type != dynamic) {
-      if (path.type == stateElement.runtimeType) {
+    if (path.expectedType != dynamic) {
+      if (path.expectedType == stateElement.runtimeType) {
         return stateElement;
       } else {
         throw ('Type error when trying to get state element at path: $path');
