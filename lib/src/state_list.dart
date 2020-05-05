@@ -12,9 +12,7 @@ class StateList extends _StateIterable with ListMixin<dynamic> {
     return List.from(iterable);
   }
 
-  _getElementFromKey(key) {
-    return _list[key];
-  }
+  _getElementFromKey(key) => _list[key];
 
   void _instantiateNullWithValue(
       StateValue<Null> oldElement, StateValue newElement) {
@@ -24,34 +22,32 @@ class StateList extends _StateIterable with ListMixin<dynamic> {
   }
 
   StateElement operator [](int index) {
-    if (removedFromStateTree) {
-      throw ('A value you tried to access has been removed from the state tree');
-    } else if (typeSafety == TypeSafety.complete) {
+    if (removedFromStateTree) throw (removedError);
+
+    if (typeSafety == TypeSafety.complete)
       throw ('you can\'t use [] operators with complete type safety. Instead use the call method with a state path');
-    } else {
-      return _list[index];
-    }
+
+    return _list[index];
   }
 
   operator []=(int index, value) {
-    if (removedFromStateTree) {
-      throw ('A value you tried to change has been removed from the state tree');
-    }
+    if (removedFromStateTree) throw (removedError);
+
+    StateElement oldElem = _list[index];
     _list[index] = _toStateElement(value, this);
+    oldElem.removeFromStateTree();
     notifyChange();
   }
 
   int get length {
-    if (removedFromStateTree) {
-      throw ('A value you tried to get has been removed from the state tree');
-    }
+    if (removedFromStateTree) throw (removedError);
+
     return _list.length;
   }
 
   set length(int newLength) {
-    if (removedFromStateTree) {
-      throw ('A value you tried to change has been removed from the state tree');
-    }
+    if (removedFromStateTree) throw (removedError);
+
     _list.length = newLength;
   }
 
@@ -59,76 +55,96 @@ class StateList extends _StateIterable with ListMixin<dynamic> {
   //We don't need to update our app state for every change and if we did so we
   //can run into errors and performance issue. Thus we have to override these methods to only
   //notify a change once all the mutations have finished.
-  //We use this[i] instead of list[i] to throw an error if the StateList
-  //has been removed from the state tree.
   //We also need to override methods that removes elements to notify them
   //that they've been removed from the state tree.
   //TODO: these functions need to be reviewed
 
   @override
   void addAll(Iterable iterable) {
-    insertAll(_list.length, iterable);
+    if (removedFromStateTree) throw (removedError);
+
+    var toAdd = iterable.map((e) => _toStateElement(e, this));
+    insertAll(_list.length, toAdd);
   }
 
   @override
   void clear() {
-    var newList = List.of(_list);
+    if (removedFromStateTree) throw (removedError);
+
+    var toRemove = List.of(_list);
     _list.clear();
-    newList.forEach(_remove);
+    toRemove.forEach(_remove);
     notifyChange();
   }
 
   @override
   void fillRange(int start, int end, [fillValue]) {
+    if (removedFromStateTree) throw (removedError);
+
     var toRemove = getRange(start, end);
-    for (int i = start; i < end + 1; i++) {
+    for (int i = start; i < end + 1; i++)
       _list[i] = _toStateElement(fillValue, this);
-    }
+
     toRemove.forEach(_remove);
     notifyChange();
   }
 
   @override
   void insert(int index, value) {
+    if (removedFromStateTree) throw (removedError);
+
+    var toRemove = _list[index];
     _list.insert(index, _toStateElement(value, this));
+    _remove(toRemove);
     notifyChange();
   }
 
   @override
   insertAll(int index, Iterable iterable) {
-    var newList = iterable.map((e) => _toStateElement(e, this));
-    _list.insertAll(index, newList);
+    if (removedFromStateTree) throw (removedError);
+
+    var toAdd = iterable.map((e) => _toStateElement(e, this));
+    _list.insertAll(index, toAdd);
     notifyChange();
   }
 
   @override
   bool remove(element) {
-    assert(element is StateElement);
-    var elem = element as StateElement;
+    if (removedFromStateTree) throw (removedError);
+
     bool returnVal = _list.remove(element);
-    elem._removeFromStateTree();
-    notifyChange();
+    if (returnVal) {
+      _remove(element);
+      notifyChange();
+    }
     return returnVal;
   }
 
   @override
   StateElement removeAt(int index) {
-    var elem = this[index];
-    elem._removeFromStateTree();
+    if (removedFromStateTree) throw (removedError);
+
+    var toRemove = _list[index];
     _list.removeAt(index);
-    return elem;
+    _remove(toRemove);
+    notifyChange();
+    return toRemove;
   }
 
   @override
   StateElement removeLast() {
-    StateElement elem = _list.removeLast();
-    elem._removeFromStateTree();
+    if (removedFromStateTree) throw (removedError);
+
+    var toRemove = _list.removeLast();
+    _remove(toRemove);
     notifyChange();
-    return elem;
+    return toRemove;
   }
 
   @override
   void removeRange(int start, int end) {
+    if (removedFromStateTree) throw (removedError);
+
     var toRemove = _list.getRange(start, end);
     _list.removeRange(start, end);
     toRemove.forEach(_remove);
@@ -137,6 +153,8 @@ class StateList extends _StateIterable with ListMixin<dynamic> {
 
   @override
   void removeWhere(bool test(StateElement element)) {
+    if (removedFromStateTree) throw (removedError);
+
     var toRemove = _list.where(test);
     _list.removeWhere(test);
     toRemove.forEach(_remove);
@@ -145,14 +163,19 @@ class StateList extends _StateIterable with ListMixin<dynamic> {
 
   @override
   void replaceRange(int start, int end, Iterable replacement) {
+    if (removedFromStateTree) throw (removedError);
+
     var toRemove = _list.getRange(start, end);
-    _list.replaceRange(start, end, replacement);
+    var toAdd = replacement.map((e) => _toStateElement(e, this));
+    _list.replaceRange(start, end, toAdd);
     toRemove.forEach(_remove);
     notifyChange();
   }
 
   @override
   void retainWhere(bool test(StateElement element)) {
+    if (removedFromStateTree) throw (removedError);
+
     var toRemove = _list.where((elem) => !test(elem));
     _list.retainWhere(test);
     toRemove.forEach(_remove);
@@ -161,12 +184,11 @@ class StateList extends _StateIterable with ListMixin<dynamic> {
 
   @override
   setAll(int index, Iterable iterable) {
+    if (removedFromStateTree) throw (removedError);
+
     var toRemove = _list.getRange(index, iterable.length - 1);
-    int newIndex = index;
-    for (var elem in iterable) {
-      _list[newIndex] = _toStateElement(elem, this);
-      index++;
-    }
+    var toAdd = iterable.map((e) => _toStateElement(e, this));
+    _list.setAll(index, toAdd);
     toRemove.forEach(_remove);
     notifyChange();
   }
@@ -180,6 +202,8 @@ class StateList extends _StateIterable with ListMixin<dynamic> {
 
   @override
   shuffle([Random random]) {
+    if (removedFromStateTree) throw (removedError);
+
     _list.shuffle(random);
     notifyChange();
   }
@@ -189,13 +213,9 @@ class StateList extends _StateIterable with ListMixin<dynamic> {
 }
 
 List<StateElement> _toStateElementList(List list, StateElement parent) {
-  List<StateElement> newList = [];
+  var stateElements = list.map((e) => _toStateElement(e,parent));
 
-  list.forEach((element) {
-    newList.add(_toStateElement(element, parent));
-  });
-
-  return newList;
+  return List.from(stateElements).cast<StateElement>();
 }
 
 void _remove(element) {

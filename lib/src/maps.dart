@@ -8,18 +8,14 @@ class StateMap extends _StateIterable with MapMixin<String, dynamic> {
     _map = _toStateElementMap(map, this);
   }
 
-  _getElementFromKey(key) {
-    return _map[key];
-  }
+  _getElementFromKey(key) => _map[key];
 
   void _instantiateNullWithValue(
       StateValue<Null> oldElement, StateValue newElement) {
     String k;
-    for (var key in _map.keys){
-      if(_map[key]==oldElement){
-        k=key;
-      }
-    }
+
+    for (var key in _map.keys) if (_map[key] == oldElement) k = key;
+
     _map[k] = newElement;
     notifyChange();
   }
@@ -27,11 +23,10 @@ class StateMap extends _StateIterable with MapMixin<String, dynamic> {
   Iterable<String> get keys => _map.keys;
 
   operator [](key) {
-    if (removedFromStateTree) {
-      throw ('A value you tried to access has been removed from the state tree');
-    } else if(typeSafety==TypeSafety.complete){
-      throw('you can\'t use [] operators with complete type safety. Instead use the call method with a state path');
-    }
+    if (removedFromStateTree) throw (removedError);
+    if (typeSafety == TypeSafety.complete)
+      throw ('you can\'t use [] operators with complete type safety. Instead use the call method with a state path');
+
     return _map[key];
   }
 
@@ -89,21 +84,18 @@ class StateObject extends StateMap {
   }
 
   operator [](key) {
-    if (removedFromStateTree) {
-      throw ('A value you tried to access has been removed from the state tree');
-    } else if(typeSafety!=TypeSafety.unsafe){
-      throw('you can\'t use [] operators on state objects while using type-safe options');
-    }
+    if (removedFromStateTree) throw (removedError);
+    if (typeSafety != TypeSafety.unsafe)
+      throw ('you can\'t use [] operators on state objects while using type-safe options');
+
     return _map[key];
   }
 }
 
 Map<String, StateElement> _toStateElementMap(
     Map<String, dynamic> map, StateElement parent) {
+  
   var newMap = Map.from(map);
-
-  newMap.updateAll((key, value) {
-    return _toStateElement(value, parent);
-  });
+  newMap.updateAll((key, value) => _toStateElement(value, parent));
   return newMap.cast<String, StateElement>();
 }

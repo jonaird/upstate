@@ -1,6 +1,6 @@
 part of 'base.dart';
 
-/// StateValue is a [StateElement] that holds a primitive value and notifies listeners when it's value changes. 
+/// StateValue is a [StateElement] that holds a primitive value and notifies listeners when it's value changes.
 /// It can be used to used to hold generic objects but this is not the recommended approach.
 
 class StateValue<T> extends StateElement {
@@ -11,20 +11,16 @@ class StateValue<T> extends StateElement {
         super(parent);
 
   T get value {
-    if (removedFromStateTree) {
-      throw ('A value you tried to access has been removed from the state tree');
-    }
+    if (removedFromStateTree) throw (removedError);
     return _value;
   }
 
   set value(T newValue) {
-    if (removedFromStateTree) {
-      throw ('A value you tried to change has been removed from the state tree');
-    }
+    if (removedFromStateTree) throw (removedError);
+
     _value = newValue;
     notifyChange();
   }
-
 
   bool get isNull => _value == null;
 
@@ -32,14 +28,12 @@ class StateValue<T> extends StateElement {
 
   T toPrimitive() => _value.toPrimitive();
 
-  
-
   StateValue instantiate(newValue) {
-    if (typing!=StateValueTyping.nonNullable) {
+    if (typing != StateValueTyping.nonNullable)
       throw ('Initialize should only but used for when not using nonNullable typing');
-    } else if (_value != null) {
-      throw ('you can only instantiate null state values');
-    }
+
+    if (_value != null) throw ('you can only instantiate null state values');
+
     var newElement = _toStateElement(newValue, this.parent);
     parent._instantiateNullWithValue(this, newElement);
     _notifications.add(StateElementNotification.instantiated);
@@ -48,15 +42,11 @@ class StateValue<T> extends StateElement {
   }
 }
 
-enum StateValueTyping{
-  dynamicTyping, strongTyping, nonNullable 
-}
-
-
+enum StateValueTyping { dynamicTyping, strongTyping, nonNullable }
 
 //needed for stateValue.toPrimitive(); which is needed for json conversion
 //override for custom json serialization. will default to toJson();
-extension on Object{
-  toPrimitive()=>this;
+//TODO: this should be reimplemented with noSuchMethod in StateValue
+extension on Object {
+  toPrimitive() => this;
 }
-

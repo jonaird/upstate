@@ -16,12 +16,11 @@ class StateWidget extends InheritedWidget {
 
   @override
   bool updateShouldNotify(StateWidget oldWidget) {
-    if(oldWidget.state != state){
+    if (oldWidget.state != state) {
       oldWidget.state.unmount();
       return true;
-    } else{
+    } else
       return false;
-    }
   }
 }
 
@@ -29,21 +28,17 @@ mixin StateConsumerMixin<T extends StatefulWidget> on State<T> {
   List<StreamSubscription> subscriptions = [];
 
   subscribeToPaths(List<StatePath> paths, StateObject state) {
-    for (var path in paths) {
-      var element = state(path) as StateElement;
-      var sub = element.subscribe(_setStateSubscriptionCallback);
-      subscriptions.add(sub);
-    }
+    for (var path in paths)
+      subscriptions
+          .add((state(path) as StateElement).subscribe(setStateCallback));
   }
 
-  _setStateSubscriptionCallback(event) {
+  setStateCallback(event) {
     setState(() {});
   }
 
   cancelSubscriptions() {
-    for (var sub in subscriptions) {
-      sub.cancel();
-    }
+    for (var sub in subscriptions) sub.cancel();
   }
 }
 

@@ -1,14 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:upstate/upstate.dart';
 
-
 //TODO: clean up tests and include widget tests
 //to perform test uncomment base.dart line 71
 void main() {
-
-
   var a = <String, dynamic>{
     'a': 1,
     "b": 2.2,
@@ -22,9 +20,6 @@ void main() {
       "deeper": {"evenDeeper": 'a string'}
     }
   };
-
-
-
 
   test('to and from json should result in same values', () {
     var first = StateObject(a);
@@ -84,7 +79,7 @@ void main() {
       }
     });
     c = c.instantiate(5);
-   
+
     Timer(Duration(milliseconds: 200), () {
       sub.cancel();
       expect(removed, true);
@@ -99,7 +94,9 @@ void main() {
     expect(c.value, 5.5);
   });
 
-  test('not using num converter converter disallows int and double interchangeably', () {
+  test(
+      'not using num converter converter disallows int and double interchangeably',
+      () {
     var b = StateObject({'a': 1}, typing: StateValueTyping.strongTyping);
     var c = b['a'];
     bool err = false;
@@ -112,62 +109,57 @@ void main() {
     expect(err, true);
   });
 
-  test('stronglyTyped:false allows any value', (){
+  test('stronglyTyped:false allows any value', () {
     var b = StateObject(a);
-    
+
     var path = StatePath(['a']);
-   
+
     bool err = false;
 
-    try{
-      b(path).value=1;
-      b(path).value=null;
-    }catch(error){
-      err=true;
+    try {
+      b(path).value = 1;
+      b(path).value = null;
+    } catch (error) {
+      err = true;
     }
-    expect(err,false);
+    expect(err, false);
   });
 
-  test('type safety throws error when using dynamic state path', (){
-    var state = StateObject(a,typeSafety: TypeSafety.complete);
+  test('type safety throws error when using dynamic state path', () {
+    var state = StateObject(a, typeSafety: TypeSafety.complete);
     var err = false;
-    try{
+    try {
       var b = state(StatePath(['a']));
-    }catch(error){
-      err=true;
+    } catch (error) {
+      err = true;
     }
 
-    expect(err,true);
-
+    expect(err, true);
   });
-  
-  test('using type safety throws error when using incorrect state path generic', (){
-    var state = StateObject(a,typeSafety: TypeSafety.complete);
+
+  test('using type safety throws error when using incorrect state path generic',
+      () {
+    var state = StateObject(a, typeSafety: TypeSafety.complete);
     var err = false;
-    try{
+    try {
       var b = state(StatePath<int>(['a']));
-    }catch(error){
-      
-      err=true;
+    } catch (error) {
+      err = true;
     }
-    expect(err,true);
-
+    expect(err, true);
   });
 
-  test('type safety doesn\'t thow error when using correct state path', (){
-    var state = StateObject(a,typeSafety: TypeSafety.complete);
+  test('type safety doesn\'t thow error when using correct state path', () {
+    var state = StateObject(a, typeSafety: TypeSafety.complete);
     var err = false;
-    try{
+    try {
       var b = state(StatePath<StateValue<dynamic>>(['a']));
-    }catch(error){
-      err=true;
+    } catch (error) {
+      err = true;
     }
 
-    expect(err,false);
-
+    expect(err, false);
   });
 
 }
-
-
 
