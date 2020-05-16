@@ -17,7 +17,7 @@ dependencies:
 To get started quickly check out the [examples](https://github.com/jonaird/upstate/tree/master/example/lib). 
  
 For more information check out my Medium articles: 
-1. [Introduction]() 
+1. [Introduction](https://levelup.gitconnected.com/introducing-upstate-simplified-state-management-for-flutter-c987cac25b04) 
 2. [Behind the Scenes](https://medium.com/@jonathan.aird/upstate-behind-the-scenes-2fe08c5d50c7)  
 3. [Type Safety](https://medium.com/@jonathan.aird/adding-type-safety-to-upstate-654f899ebdbc) 
 4. [Custom State Objects](https://medium.com/@jonathan.aird/using-upstate-with-any-kind-of-state-object-599b01ec4751) 
