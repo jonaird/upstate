@@ -1,3 +1,5 @@
+## [0.6.2] - Added homepage
+
 ## [0.6.1] - Added api docs and more flexibility for type safety
 
 ## [0.6.0] - Added ability for custom state objects plus first breaking change

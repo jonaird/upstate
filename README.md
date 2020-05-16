@@ -22,7 +22,7 @@ For more information check out my Medium articles:
 3. [Type Safety](https://medium.com/@jonathan.aird/adding-type-safety-to-upstate-654f899ebdbc) 
 4. [Custom State Objects](https://medium.com/@jonathan.aird/using-upstate-with-any-kind-of-state-object-599b01ec4751) 
  
-And the [API documentation](https://jonaird.github.io/upstate_api_docs/upstate/upstate-library.html)
+And the [API documentation](https://pub.dev/documentation/upstate/latest/upstate/upstate-library.html)
  
 Upstate exposes many low level API's that can be mixed and matched to do lots of different things that
 I don't have the time to go into in detail.
