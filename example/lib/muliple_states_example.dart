@@ -46,7 +46,7 @@ class MyHomePage extends StatelessWidget {
             ),
             StateBuilder<GlobalState>(
                 paths: [StatePath(['counter'])], // will rebuild when any value at this path changes
-                builder: (BuildContext context, StateObject state, child) {
+                builder: (BuildContext context, StateObject state) {
                   return Text(
                     state['counter'].value.toString(),
                     style: Theme.of(context).textTheme.headline4,

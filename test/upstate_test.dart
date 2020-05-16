@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:upstate/upstate.dart';
 
-//TODO: clean up tests and include widget tests
 //to perform test uncomment base.dart line 71
 void main() {
   var a = <String, dynamic>{
@@ -42,9 +40,9 @@ void main() {
     var path = StatePath(['c', 3, 'a']);
     var obj = StateObject(a);
     var value = obj(path);
-    obj.removeFromStateTree();
+    obj.notifyRemovedFromState();
 
-    expect(value.removedFromStateTree, true);
+    expect(value.removedFromState, true);
   });
 
   test('change in value notifies ancestors', () {
@@ -74,7 +72,7 @@ void main() {
     var c = b['a'];
     bool removed = false;
     var sub = c.notifications.listen((event) {
-      if (event == StateElementNotification.removedFromStateTree) {
+      if (event == StateElementNotification.removedFromState) {
         removed = true;
       }
     });
@@ -161,5 +159,38 @@ void main() {
     expect(err, false);
   });
 
+  test('custom state object works', (){
+    var obj = CustomStateObject();
+    obj.counter.increment();
+
+    expect(obj.counter.count,1);
+  });
+
 }
 
+class CustomStateObject extends RootStateElement {
+  CounterModel counter;
+
+  CustomStateObject(){
+    counter= CounterModel(this);
+  }
+
+  @override
+  void unmount() {
+    notifyRemovedFromState();
+    counter.notifyRemovedFromState();
+  }
+
+}
+
+class CounterModel extends StateElement{
+  int _count = 0;
+
+  CounterModel(StateElement parent):super(parent);
+
+  int get count => _count;
+
+  void increment()=>_count++;
+
+
+}

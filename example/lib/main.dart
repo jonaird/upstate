@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'builder_example.dart';
+import 'custom_state_object_example.dart';
 import 'package:upstate/upstate.dart';
 
 void main() {
