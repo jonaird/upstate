@@ -62,7 +62,9 @@ class StateObject extends RootStateElement
   }
 
   T call<T>(StatePath path) {
-    if (typeSafety != TypeSafety.unsafe && path.expectedType == dynamic)
+
+    var didSpecifiedType = (T!=dynamic || path.expectedType!=dynamic);
+    if (typeSafety != TypeSafety.unsafe && !didSpecifiedType)
       throw ('when using complete type safety all paths must have their expected state element types as '
           'their generic values.');
 
