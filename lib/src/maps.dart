@@ -41,11 +41,11 @@ class StateObject extends RootStateElement
         converter: converter);
   }
 
-  String toJson(){
+  String toJson() {
     var primitives = toPrimitive();
     return jsonEncode(primitives);
   }
-  
+
   dynamic _getElementFromPath(StatePath path) {
     dynamic element = this;
 
@@ -62,8 +62,7 @@ class StateObject extends RootStateElement
   }
 
   T call<T>(StatePath path) {
-
-    var didSpecifiedType = (T!=dynamic || path.expectedType!=dynamic);
+    var didSpecifiedType = (T != dynamic || path.expectedType != dynamic);
     if (typeSafety != TypeSafety.unsafe && !didSpecifiedType)
       throw ('when using complete type safety all paths must have their expected state element types as '
           'their generic values.');
@@ -113,6 +112,7 @@ mixin _StateMapMixin on StateElement {
     _map[k] = newElement;
     notifyChange();
   }
+
   void notifyRemovedFromState() {
     _notifications.add(StateElementNotification.removedFromState);
     _notifications.close();

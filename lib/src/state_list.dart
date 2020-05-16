@@ -219,13 +219,14 @@ class StateList extends StateIterable with ListMixin<dynamic> {
   shuffle([Random random]) {
     if (removedFromState) throw (removedError);
 
-    if(random!=null) _list.shuffle(random);
-    else _list.shuffle();
+    if (random != null)
+      _list.shuffle(random);
+    else
+      _list.shuffle();
     notifyChange();
   }
 
   sort([int compare(a, b)]) {
-
     if (removedFromState) throw (removedError);
     _list.sort(compare);
     notifyChange();

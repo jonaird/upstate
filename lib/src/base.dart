@@ -156,7 +156,6 @@ StateElement _toStateElement(obj, StateElement parent) {
 abstract class StateIterable extends StateElement {
   StateIterable(StateElement parent) : super(parent);
 
-
   dynamic _getElementFromPath(StatePath path) {
     dynamic elem = this;
 
@@ -175,7 +174,7 @@ abstract class StateIterable extends StateElement {
   }
 
   T call<T>(StatePath path) {
-    var didSpecifiedType = (T!=dynamic || path.expectedType!=dynamic);
+    var didSpecifiedType = (T != dynamic || path.expectedType != dynamic);
     if (typeSafety != TypeSafety.unsafe && !didSpecifiedType)
       throw ('when using complete type safety all paths must have their expected state element types as '
           'their generic values.');
@@ -188,7 +187,6 @@ abstract class StateIterable extends StateElement {
 
     return element;
   }
-
 }
 
 ///This built in converter will convert all ints and doubles to [StateValue]<num>

@@ -3,7 +3,7 @@ part of 'base.dart';
 /// StateValue is a [StateElement] that holds a value and notifies listeners when it's value changes.
 /// If the value held by the StateValue is a primitive type (bool, String, int, double), then it will
 /// automatically notify listeners when the value has changed. However if it holds some other type of object,
-/// it just holds a pointer to that object and you should call [notifyChange] on the state value after 
+/// it just holds a pointer to that object and you should call [notifyChange] on the state value after
 /// mutating the object. If you want a state element that contains a complex data structure and automatically
 /// notifies listeners upon a change, you can create a custom state model using a converter function.
 
@@ -27,6 +27,7 @@ class StateValue<T> extends StateElement {
     _value = newValue;
     notifyChange();
   }
+
   ///Returns whether the value contained in the StateValue is equal to null.
   bool get isNull => _value == null;
 
@@ -47,15 +48,17 @@ class StateValue<T> extends StateElement {
     if (_value != null) throw ('you can only instantiate null state values');
 
     var newElement = _toStateElement(newValue, parent);
-    if(parent is StateMap)(parent as StateMap)._instantiateNullWithValue(this, newElement);
-    if(parent is StateObject)(parent as StateObject)._instantiateNullWithValue(this, newElement);
-    if(parent is StateList)(parent as StateList)._instantiateNullWithValue(this, newElement);
+    if (parent is StateMap)
+      (parent as StateMap)._instantiateNullWithValue(this, newElement);
+    if (parent is StateObject)
+      (parent as StateObject)._instantiateNullWithValue(this, newElement);
+    if (parent is StateList)
+      (parent as StateList)._instantiateNullWithValue(this, newElement);
     _notifications.add(StateElementNotification.instantiated);
     notifyRemovedFromState();
     return newElement;
   }
 }
 
-///This option dictates what the generic type of [StateValue] will be. 
+///This option dictates what the generic type of [StateValue] will be.
 enum StateValueTyping { dynamicTyping, strongTyping, nonNullable }
-
