@@ -5,7 +5,6 @@ import 'dart:async';
 import 'src/base.dart';
 export 'src/base.dart';
 
-
 ///A simple inherited widget that is used to hold onto a [StateObject] or your own
 ///subclass of [RootStateElement] so that they can be accessed by children.
 class StateWidget extends InheritedWidget {
@@ -51,11 +50,9 @@ mixin StateConsumerMixin<T extends StatefulWidget> on State<T> {
 /// StateBuilder<YourStateWidget>.
 class StateBuilder<T extends StateWidget> extends StatefulWidget {
   final List<StatePath> paths;
-  final Widget Function(BuildContext context, StateObject state)
-      builder;
+  final Widget Function(BuildContext context, StateObject state) builder;
 
-  StateBuilder(
-      {@required this.paths, @required this.builder, Key key})
+  StateBuilder({@required this.paths, @required this.builder, Key key})
       : super(key: key);
 
   @override
@@ -89,15 +86,13 @@ class _StateBuilderState<T extends StateWidget> extends State<StateBuilder>
 /// CustomStateBuilder can be used to rebuild on state changes in multiple states in the widget tree or with a
 /// custom state object that doesn't use [StatePath]s. Since the builder has access to the build context,
 /// you can get whichever state you want or multiple states within the builder. Instead of a list of paths,
-/// CustomStateBuilder takes a list of state elements and rebuilds on changes to any of them. This way you 
+/// CustomStateBuilder takes a list of state elements and rebuilds on changes to any of them. This way you
 /// can subscribe to elements from different states.
 class CustomStateBuilder extends StatefulWidget {
   final List<StateElement> elements;
-  final Widget Function(BuildContext context)
-      builder;
+  final Widget Function(BuildContext context) builder;
 
-  CustomStateBuilder(
-      {@required this.elements, @required this.builder, Key key})
+  CustomStateBuilder({@required this.elements, @required this.builder, Key key})
       : super(key: key);
 
   @override
@@ -106,12 +101,10 @@ class CustomStateBuilder extends StatefulWidget {
 
 class _CustomStateBuilderState extends State<CustomStateBuilder>
     with StateConsumerMixin {
- 
-
   @override
   void didChangeDependencies() {
     cancelSubscriptions();
-    for(var element in widget.elements)
+    for (var element in widget.elements)
       subscriptions.add(element.subscribe(setStateCallback));
     super.didChangeDependencies();
   }
