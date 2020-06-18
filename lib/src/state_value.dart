@@ -28,6 +28,21 @@ class StateValue<T> extends StateElement {
     notifyChange();
   }
 
+  void silentSet(T newVal){
+    if (removedFromState) throw (removedError);
+    _value=newVal;
+  }
+
+  void quietSet(T newVal){
+    if (removedFromState) throw (removedError);
+    if(notifyParent==false) throw('no need to use quietSet if notifyParent is false');
+    notifyParent=false;
+    _value = newVal;
+    notifyChange();
+    notifyParent=true;
+
+  }
+
   ///Returns whether the value contained in the StateValue is equal to null.
   bool get isNull => _value == null;
 

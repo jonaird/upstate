@@ -1,6 +1,6 @@
 name: upstate
 description: A simple yet powerful state management library for Flutter that provides a continuous workflow from prototyping to production
-version: 0.6.2
+version: 0.6.3
 repository: "https://github.com/jonaird/upstate" 
 homepage: "https://github.com/jonaird/upstate"
 

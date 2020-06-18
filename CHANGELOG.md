@@ -1,3 +1,13 @@
+## [0.6.4] - added ability to change state value without notifying parents
+
+To set a state value without notifying parents: 
+`stateVal.quietSet(newVal);`
+
+## [0.6.3] - added ability to change state value without notifying listeners
+
+To set a state value without notifying listeners: 
+`stateVal.silentSet(newVal);`
+
 ## [0.6.2] - Added homepage
 
 ## [0.6.1] - Added api docs and more flexibility for type safety
