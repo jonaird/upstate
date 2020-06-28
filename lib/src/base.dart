@@ -20,6 +20,7 @@ part 'state_value.dart';
 
 abstract class StateElement {
   final StateElement parent;
+  RootStateElement _rootElement;
   bool _removedFromState = false, notifyParent;
   StateElement Function(dynamic value, StateElement parent) converter;
   StateValueTyping typing;
@@ -31,13 +32,16 @@ abstract class StateElement {
       typing = parent.typing;
       converter = parent.converter;
       typeSafety = parent.typeSafety;
+      _rootElement=parent._rootElement;
     }
+    else _rootElement=this;
   }
 
   final StreamController<StateElementNotification> _notifications =
       StreamController.broadcast();
 
-  bool get isRoot => parent == null;
+
+  RootStateElement get rootElement =>_rootElement;
 
   ///Whether a state element has been removed from the state tree
   bool get removedFromState => _removedFromState;
@@ -46,6 +50,7 @@ abstract class StateElement {
   Stream<StateElementNotification> get notifications => _notifications.stream;
 
   ///Subscripes to [notifications] and calls the callback upon an event
+  ///will be depricated. Use notifications instead.
   StreamSubscription<StateElementNotification> subscribe(
       void Function(StateElementNotification notification) callback) {
     return notifications.listen((event) => callback(event));
@@ -57,7 +62,7 @@ abstract class StateElement {
 
     _notifications.add(StateElementNotification.changed);
 
-    if (notifyParent && !isRoot) parent.notifyChange();
+    if (notifyParent) parent?.notifyChange();
   }
 
   ///should be called after a state element is no longer part of the state. This will cause

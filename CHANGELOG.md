@@ -1,3 +1,8 @@
+## [0.6.5] - Minor improvements
+
+ - Each state element now has a reference to the root state element.
+ - State values will only notify listeners if the new value is different than the old one.
+
 ## [0.6.4] - added ability to change state value without notifying parents
 
 To set a state value without notifying parents: 

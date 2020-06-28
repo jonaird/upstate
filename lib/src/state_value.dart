@@ -14,6 +14,8 @@ class StateValue<T> extends StateElement {
       : _value = value,
         super(parent);
 
+  StateValue.orphan(T value) : this(value, null);
+
   ///Gets the value held in the [StateValue]
   T get value {
     if (removedFromState) throw (removedError);
@@ -24,23 +26,27 @@ class StateValue<T> extends StateElement {
   set value(T newValue) {
     if (removedFromState) throw (removedError);
 
-    _value = newValue;
-    notifyChange();
+    if (_value != newValue) {
+      _value = newValue;
+      notifyChange();
+    }
   }
 
-  void silentSet(T newVal){
+  void silentSet(T newVal) {
     if (removedFromState) throw (removedError);
-    _value=newVal;
-  }
-
-  void quietSet(T newVal){
-    if (removedFromState) throw (removedError);
-    if(notifyParent==false) throw('no need to use quietSet if notifyParent is false');
-    notifyParent=false;
     _value = newVal;
-    notifyChange();
-    notifyParent=true;
+  }
 
+  void quietSet(T newValue) {
+    if (removedFromState) throw (removedError);
+    if (notifyParent == false)
+      throw ('no need to use quietSet if notifyParent is false');
+    notifyParent = false;
+    if (_value != newValue) {
+      _value = newValue;
+      notifyChange();
+    }
+    notifyParent = true;
   }
 
   ///Returns whether the value contained in the StateValue is equal to null.
