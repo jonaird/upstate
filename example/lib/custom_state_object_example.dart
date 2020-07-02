@@ -56,6 +56,7 @@ class MyHomePage extends StatelessWidget {
 
 class MyStateObject extends RootStateElement {
   CounterModel _counter;
+  
 
   MyStateObject() {
     _counter = CounterModel(this);
@@ -75,7 +76,8 @@ class MyStateObject extends RootStateElement {
 
 class CounterModel extends StateElement {
   int _count = 0;
-
+  bool notifyParent = false;
+  
   CounterModel(StateElement parent) : super(parent);
 
   int get count => _count;
