@@ -76,9 +76,11 @@ class MyStateObject extends RootStateElement {
 
 class CounterModel extends StateElement {
   int _count = 0;
-  bool notifyParent = false;
+  bool notifyParent;
   
-  CounterModel(StateElement parent) : super(parent);
+  CounterModel(StateElement parent) : super(parent){
+    notifyParent=false;
+  }
 
   int get count => _count;
 
