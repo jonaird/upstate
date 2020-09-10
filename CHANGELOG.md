@@ -1,3 +1,6 @@
+## [0.6.6] - Upstate is deprecated
+See my [writeup](https://medium.com/@jonathan.aird/upstate-is-now-changeemitter-a-flexible-highly-composable-alternative-to-changenotifier-c837e6db493f) for more info.
+
 ## [0.6.5] - Minor improvements
 
  - Each state element now has a reference to the root state element.
